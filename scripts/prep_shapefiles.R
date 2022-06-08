@@ -6,6 +6,7 @@ rm(list = ls())
 library(maptools)
 library(rgdal)
 library(maps)
+library(sf)
 
 isl <- readOGR("data/5km_buffer/ALLPacific_Sectors_Islands_5km_buffer.shp")
 isl = recenter(isl); plot(isl); map(add = T)
