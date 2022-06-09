@@ -25,7 +25,7 @@ calculate_anomalies = function(period, data){
   
   names(Baseline)
   
-  pdf(paste0("outputs/", data, "_Climatology_1955-1984.pdf"), height = 10, width = 8.5)
+  png(paste0("outputs/", data, "_Climatology_1955-1984.png"), height = 9, width = 5.65, res = 500, units = "in")
   par(mfrow = c(2,1))
   plot(calc(Baseline, mean), col = matlab.like(100), axes = F, main = "Mean")
   map(add = T, lwd = 0.1, fill = T, col = "gray"); degAxis(1); degAxis(2, las = 1)
