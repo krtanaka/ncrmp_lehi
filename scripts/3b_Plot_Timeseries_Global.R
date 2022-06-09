@@ -107,6 +107,6 @@ t
         legend.justification = c(-0.3,0.8)) + 
   labs(x = "", y = "Area fraction (%)"))
 
-png(paste0("outputs/timeseries_v1_", percentile, ".png"), height = 6, width = 5, units = "in", res = 500)
+png(paste0("outputs/timeseries_v1_", percentile, ".png"), height = 4, width = 8, units = "in", res = 500)
 print(p)
 dev.off()
