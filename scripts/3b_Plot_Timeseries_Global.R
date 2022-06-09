@@ -96,12 +96,17 @@ t = timeseries %>% mutate(period = ifelse(Year %in% c(1955:1987), "1st", "2nd"))
   mutate(percent = (sum/lag(sum)-1)*100)
 t
 
-
-timeseries %>% 
+(p = timeseries %>% 
   ggplot(aes(Year, year_sum, color = year_sum)) +
-  geom_point(alpha = 0.85, size = 5)  +
+  geom_point(alpha = 0.9, size = 5)  +
   geom_line() +
   scale_color_gradientn(colours = matlab.like(100), "") + 
   geom_hline(yintercept = 0.5, linetype = "dashed") + 
-  labs(x = "", y = "Area fraction (%)") + 
-  dark_theme_classic(I(20))
+  theme_cowplot(I(15)) + 
+  theme(legend.position = c(0,1),
+        legend.justification = c(-0.3,0.8)) + 
+  labs(x = "", y = "Area fraction (%)"))
+
+png(paste0("outputs/timeseries_v1_", percentile, ".png"), height = 6, width = 5, units = "in", res = 500)
+print(p)
+dev.off()

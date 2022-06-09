@@ -187,20 +187,19 @@ map = function(mode){
         scale_y_continuous(expand = c(-0.005, 15), "", limits = range(anom$y)) +
         # coord_fixed() +
         coord_map("ortho", orientation = c(0, 180, 0)) + #normal
-        facet_grid(season ~ period) +
+        facet_grid(period ~ season) +
         theme(axis.title = element_blank(),
               axis.text = element_blank(),
               axis.ticks = element_blank(),
               legend.position = "bottom",
               legend.justification = c(1,0)))
     
-    png(paste0("outputs/annual_map_v4_", percentile, ".png"), height = 6, width = 10, units = "in", res = 500)
+    png(paste0("outputs/annual_map_v4_", percentile, ".png"), height = 10, width = 9, units = "in", res = 500)
     print(p)
     dev.off()
     
   }
-  
-  
+
 }
 
 map("annual")
