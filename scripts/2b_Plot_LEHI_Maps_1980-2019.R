@@ -118,6 +118,11 @@ map = function(mode){
   
   if (mode == "seasonal_difference") {
     
+    anom = rbind(hadi1, hadi2, hadi3, hadi4, 
+                 cobe1, cobe2, cobe3, cobe4)
+    
+    anom$source = factor(anom$source, levels = c("HadISST v1.1", "COBE v2"))
+    
     season_1 = anom[,c("x", "y", "jan", "feb", "mar", "source", "period")]; season_1$season = "Jan_Feb_Mar"
     season_2 = anom[,c("x", "y", "jul", "aug", "sep", "source", "period")]; season_2$season = "Jul_Aug_Sep"
     
@@ -131,29 +136,22 @@ map = function(mode){
     seasonal_differnece = cbind(season_1[,1:2], seasonal_differnece)
     colnames(seasonal_differnece)[3] = "diff"
     
-    p = seasonal_differnece %>% 
-      ggplot() +
-      geom_raster(aes(x = x, y = y, 
-                      # fill = abs(diff)
-                      fill = diff), interpolate = T) +
-      geom_map(data = world, map = world, aes(x = long, y = lat, map_id = id),
-               color = "gray20", fill = "gray20", size = 0.001) +
-      scale_fill_gradientn(colors = rev(ipcc_col), "", limits = c(-1, 1), breaks = c(-1, 1)) +
-      # scale_fill_viridis_c("", limits = c(-1, 1), breaks = c(-1, 1)) + 
-      scale_x_continuous(expand = c(-0.005, 0), "") +
-      scale_y_continuous(expand = c(-0.005, 0), "") +
-      coord_fixed() +
-      theme_minimal(I(20)) +
-      theme(axis.title.x = element_blank(),
-            axis.title.y = element_blank(),
-            axis.text.x = element_blank(),
-            axis.text.y = element_blank(),
-            axis.ticks.x = element_blank(),
-            axis.ticks.y = element_blank(),
-            legend.position = "bottom",
-            legend.justification = c(1,0))
+    (p = seasonal_differnece %>% 
+        ggplot() +
+        geom_tile(aes(x, y, fill = diff), width = 1, height = 1) + 
+        annotation_map(map_data("world"), fill = "gray50", colour = "gray20", size = 0.5) +
+        scale_fill_gradientn(colors = rev(ipcc_col), "", limits = c(-1, 1), breaks = c(-1, 0, 1)) +
+        scale_x_continuous(expand = c(-0.005, 15), "", limits = range(anom$x)) +
+        scale_y_continuous(expand = c(-0.005, 15), "", limits = range(anom$y)) +
+        # coord_map("ortho", orientation = c(0, 180, 0)) + #normal
+        theme_cowplot() +
+        theme(axis.title = element_blank(),
+              axis.text = element_blank(),
+              axis.ticks = element_blank(),
+              legend.position = "bottom",
+              legend.justification = c(1,0)))
     
-    pdf(paste0("/Users/", Sys.info()[7], "/Desktop/s3.pdf"), height = 10, width = 10)
+    png(paste0("outputs/annual_map_v3_", percentile, ".png"), height = 6, width = 6, units = "in", res = 500)
     print(p)
     dev.off()
     
@@ -181,50 +179,22 @@ map = function(mode){
     
     anom = rbind(annual, season) %>% group_by(x, y, period, season) %>% summarise(sum = median(sum))
     
-    p = anom %>% 
-      sample_frac(0.01) %>%
-      ggplot(size = 5, alpha = 0.8) + 
-      geom_point(aes(x = x, y = y, color = sum), size = 1, alpha = 0.5, shape = 16) +
-      geom_map(data = world, map = world, aes(x = long, y = lat, map_id = id),
-               color = "gray20", fill = "gray20", size = 0.1) + 
-      # scale_color_gradientn(colors = matlab.like(100), "", limits = c(0,1)) +
-      scale_color_gradientn(colors = rev(ipcc_col), "", limits = c(0,1), breaks = c(0, 0.5, 1)) +
-      # coord_proj("+proj=wintri") +
-      scale_x_continuous(expand = c(-0.005, 0), "") +
-      scale_y_continuous(expand = c(-0.005, 0), "") +
-      coord_fixed() +
-      facet_grid(season ~ period) +
-      theme_minimal(I(20)) +
-      theme(axis.title.x = element_blank(),
-            axis.title.y = element_blank(), 
-            axis.text.x = element_blank(),
-            axis.text.y = element_blank(),
-            axis.ticks.x = element_blank(),
-            axis.ticks.y = element_blank(),
-            legend.position = "bottom", 
-            legend.justification = c(1,0))
+    (p = ggplot(anom) + 
+        geom_tile(aes(x, y, fill = sum), width = 1, height = 1) + 
+        annotation_map(map_data("world"), fill = "gray50", colour = "gray20", size = 0.5) +
+        scale_fill_gradientn(colors = rev(ipcc_col), "", limits = c(0,1), breaks = c(0, 0.5, 1)) +
+        scale_x_continuous(expand = c(-0.005, 15), "", limits = range(anom$x)) +
+        scale_y_continuous(expand = c(-0.005, 15), "", limits = range(anom$y)) +
+        # coord_fixed() +
+        coord_map("ortho", orientation = c(0, 180, 0)) + #normal
+        facet_grid(season ~ period) +
+        theme(axis.title = element_blank(),
+              axis.text = element_blank(),
+              axis.ticks = element_blank(),
+              legend.position = "bottom",
+              legend.justification = c(1,0)))
     
-    p = ggplot(anom) +
-      geom_raster(aes(x = x, y = y, fill = sum), interpolate = T) +
-      geom_map(data = world, map = world, aes(x = long, y = lat, map_id = id),
-               color = "gray20", fill = "gray20", size = 0.001) +
-      scale_fill_gradientn(colors = rev(ipcc_col), "", limits = c(0,1), breaks = c(0,0.5,1)) +
-      scale_x_continuous(expand = c(-0.005, 0), "") +
-      scale_y_continuous(expand = c(-0.005, 0), "") +
-      coord_fixed() +
-      facet_grid(season ~ period) +
-      theme_minimal(I(20)) +
-      theme(axis.title.x = element_blank(),
-            axis.title.y = element_blank(),
-            axis.text.x = element_blank(),
-            axis.text.y = element_blank(),
-            axis.ticks.x = element_blank(),
-            axis.ticks.y = element_blank(),
-            legend.position = "bottom",
-            legend.justification = c(1,0))
-    
-    pdf(paste0("/Users/", Sys.info()[7], "/Desktop/Fig1_", Sys.Date(), "_", percentile, ".pdf"), height = 10, width = 10)
-    # png(paste0("/Users/", Sys.info()[7], "/Desktop/Fig1_", Sys.Date(), "_", percentile, ".png"), height = 10, width = 10, units = "in", res = 100)
+    png(paste0("outputs/annual_map_v4_", percentile, ".png"), height = 6, width = 10, units = "in", res = 500)
     print(p)
     dev.off()
     
