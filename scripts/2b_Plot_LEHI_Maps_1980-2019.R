@@ -66,11 +66,12 @@ map = function(mode){
         group_by(x, y, period) %>% 
         summarise(sum = mean(sum)) %>% 
         ggplot() + 
-        geom_point(aes(x, y, color = sum),  size = 1.1, alpha = 0.8, shape = 16) +
+        # geom_point(aes(x, y, color = sum),  size = 1.1, alpha = 0.8, shape = 16) +
         # geom_raster(aes(x, y, fill = sum)) +
+        geom_tile(aes(x, y, fill = sum), width = 1, height = 1) + 
         annotation_map(map_data("world"), fill = "gray50", colour = "gray20") +
         # geom_map(data = world, map = world, aes(x = long, y = lat, map_id = id), color = "gray50", fill = "gray80", size = 0.001) +
-        scale_color_gradientn(colors = rev(ipcc_col), "", limits = c(0, 1), breaks = c(0, 0.5, 1)) +
+        # scale_color_gradientn(colors = rev(ipcc_col), "", limits = c(0, 1), breaks = c(0, 0.5, 1)) +
         scale_fill_gradientn(colors = rev(ipcc_col), "", limits = c(0, 1), breaks = c(0, 0.5, 1)) +
         scale_x_continuous(expand = c(-0.005, 15), "", limits = range(anom$x)) +
         scale_y_continuous(expand = c(-0.005, 15), "", limits = range(anom$y)) +
@@ -79,63 +80,37 @@ map = function(mode){
         # coord_fixed() + 
         coord_sf(xlim = range(anom$x), ylim = range(anom$y)) +
         coord_map("ortho", orientation = c(0, 180, 0)) + #normal
+        # coord_map(projection = "mercator") +
         theme(axis.title = element_blank(),
               axis.ticks = element_blank(), 
               axis.text = element_blank(),
-              panel.background = element_rect(fill = "gray80", colour = "gray80"),
-              strip.text.x = element_text(size = 10),
+              # panel.background = element_rect(fill = "gray80", colour = "gray80"),
               legend.position = "bottom"))
     
     png(paste0("outputs/annual_map_v1_", percentile, ".png"), height = 6.5, width = 6, units = "in", res = 500)
     print(p)
     dev.off()
     
-    p = anom %>% 
-      mutate(sum = range01(sum)) %>% 
-      group_by(x, y) %>% 
-      summarise(sum = mean(sum)) %>% 
-      ggplot(aes(x = x, y = y, color = sum)) + 
-      geom_point(alpha = 0.5, shape = 16) +
-      geom_map(map = world, aes(x = long, y = lat, map_id = id), color = "gray20", fill = "gray20", size = 0.001) +
-      scale_color_gradientn(colors = rev(ipcc_col), "") +
-      theme_map(I(20)) +
-      coord_quickmap() + 
-      theme(axis.title = element_blank(), 
-            axis.text = element_blank(),
-            axis.ticks = element_blank(),
-            legend.position = "bottom", 
-            legend.justification = c(1,0))
+    (p = anom %>% 
+        mutate(sum = range01(sum)) %>% 
+        group_by(x, y, period, source) %>% 
+        summarise(sum = median(sum)) %>% 
+        ggplot() +
+        geom_tile(aes(x, y, fill = sum), width = 1, height = 1) + 
+        annotation_map(map_data("world"), fill = "gray50", colour = "gray20", size = 0.5) +
+        scale_fill_gradientn(colors = rev(ipcc_col), "", limits = c(0, 1), breaks = c(0, 0.5, 1)) +
+        scale_x_continuous(expand = c(-0.005, 15), "", limits = range(anom$x)) +
+        scale_y_continuous(expand = c(-0.005, 15), "", limits = range(anom$y)) +
+        facet_grid(source ~ period) +
+        coord_fixed() +
+        theme_cowplot() +
+        theme(axis.title = element_blank(),
+              axis.text = element_blank(),
+              axis.ticks = element_blank(),
+              legend.position = "bottom",
+              legend.justification = c(1,0)))
     
-    pdf(paste0("outputs/annual_map_v2_", percentile, ".pdf"), height = 3, width = 4)
-    print(p)
-    dev.off()
-    
-    p = anom %>% 
-      # sample_frac(0.01) %>%
-      mutate(sum = range01(sum)) %>% 
-      # subset(y %in% seq(-60, 60, by = 0.1)) %>%
-      group_by(x, y, period, source) %>% 
-      summarise(sum = median(sum)) %>% 
-      ggplot() +
-      geom_raster(aes(x = x, y = y, fill = sum), interpolate = T) +
-      geom_map(data = world, map = world, aes(x = long, y = lat, map_id = id),
-               color = "gray20", fill = "gray20", size = 0.001) +
-      scale_fill_gradientn(colors = rev(ipcc_col), "", limits = c(0,1), breaks = c(0,0.5,1)) +
-      scale_x_continuous(expand = c(-0.005, 0), "") +
-      scale_y_continuous(expand = c(-0.005, 0), "") +
-      coord_fixed() +
-      facet_grid(source ~ period) +
-      theme_minimal(I(20)) +
-      theme(axis.title.x = element_blank(),
-            axis.title.y = element_blank(),
-            axis.text.x = element_blank(),
-            axis.text.y = element_blank(),
-            axis.ticks.x = element_blank(),
-            axis.ticks.y = element_blank(),
-            legend.position = "bottom",
-            legend.justification = c(1,0))
-    
-    pdf(paste0("/Users/", Sys.info()[7], "/Desktop/s2_", Sys.Date(), "_", percentile, ".pdf"), height = 4, width = 8)
+    png(paste0("outputs/annual_map_v2_", percentile, ".png"), height = 6.5, width = 12, units = "in", res = 500)
     print(p)
     dev.off()
     

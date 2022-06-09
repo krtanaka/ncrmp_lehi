@@ -101,7 +101,7 @@ timeseries %>%
   ggplot(aes(Year, year_sum, color = year_sum)) +
   geom_point(alpha = 0.85, size = 5)  +
   geom_line() +
-  # geom_smooth(method = "lm") + 
+  scale_color_gradientn(colours = matlab.like(100), "") + 
   geom_hline(yintercept = 0.5, linetype = "dashed") + 
-  labs(x = "", y = "Area fraction (%)")
-
+  labs(x = "", y = "Area fraction (%)") + 
+  dark_theme_classic(I(20))
