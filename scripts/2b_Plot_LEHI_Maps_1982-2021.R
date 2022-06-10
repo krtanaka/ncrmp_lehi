@@ -64,12 +64,12 @@ map = function(mode){
       # geom_raster(aes(x, y, fill = sum)) +
       geom_tile(aes(x, y, fill = sum), width = 1, height = 1) +
       annotation_map(map_data("world"), fill = "gray50", colour = "gray20") +
-      scale_fill_gradientn(colors = rev(ipcc_col), "", limits = c(0, 1), breaks = c(0, 0.5, 1)) +
+      scale_fill_gradientn(colors = rev(ipcc_col), "") +
       facet_grid(~period) +
       scale_x_continuous(expand = c(0.1, 0.1), "") +
       scale_y_continuous(expand = c(0.1, 0.1), "") +
-      coord_fixed() +
-      # coord_map(projection = "mercator") + 
+      # coord_fixed() +
+      coord_map(projection = "mercator") +
       # coord_map("ortho", orientation = c(0, 180, 0)) + #normal
       theme_void()
     
@@ -81,10 +81,7 @@ map = function(mode){
   
   if (mode == "seasonal_difference") {
     
-    anom = rbind(hadi1, hadi2, hadi3, hadi4, 
-                 cobe1, cobe2, cobe3, cobe4)
-    
-    anom$source = factor(anom$source, levels = c("HadISST v1.1", "COBE v2"))
+    anom = rbind(oisst1, oisst2, oisst3, oisst4)
     
     season_1 = anom[,c("x", "y", "jan", "feb", "mar", "source", "period")]; season_1$season = "Jan_Feb_Mar"
     season_2 = anom[,c("x", "y", "jul", "aug", "sep", "source", "period")]; season_2$season = "Jul_Aug_Sep"
@@ -92,10 +89,10 @@ map = function(mode){
     season_1$sum = rowSums(season_1[3:5])
     season_2$sum = rowSums(season_2[3:5])
     
-    season_1 = season_1 %>% group_by(x, y) %>% summarise(sum = mean(sum))
-    season_2 = season_2 %>% group_by(x, y) %>% summarise(sum = mean(sum))
+    season_1 = season_1 %>% group_by(x, y) %>% summarise(sum = mean(sum)/30)
+    season_2 = season_2 %>% group_by(x, y) %>% summarise(sum = mean(sum)/30)
     
-    seasonal_differnece = range01(season_2$sum) - range01(season_1$sum) #summer - winter
+    seasonal_differnece = season_2$sum - season_1$sum #summer - winter
     seasonal_differnece = cbind(season_1[,1:2], seasonal_differnece)
     colnames(seasonal_differnece)[3] = "diff"
     
@@ -103,16 +100,10 @@ map = function(mode){
         ggplot() +
         geom_tile(aes(x, y, fill = diff), width = 1, height = 1) + 
         annotation_map(map_data("world"), fill = "gray50", colour = "gray20", size = 0.5) +
-        scale_fill_gradientn(colors = rev(ipcc_col), "", limits = c(-1, 1), breaks = c(-1, 0, 1)) +
-        scale_x_continuous(expand = c(-0.005, 15), "", limits = range(anom$x)) +
-        scale_y_continuous(expand = c(-0.005, 15), "", limits = range(anom$y)) +
-        # coord_map("ortho", orientation = c(0, 180, 0)) + #normal
-        theme_cowplot() +
-        theme(axis.title = element_blank(),
-              axis.text = element_blank(),
-              axis.ticks = element_blank(),
-              legend.position = "bottom",
-              legend.justification = c(1,0)))
+        scale_fill_gradientn(colors = rev(ipcc_col), "") +
+        scale_x_continuous(expand = c(0.1, 0.1), "") +
+        scale_y_continuous(expand = c(0.1, 0.1), "") +
+        coord_map(projection = "mercator"))
     
     png(paste0("outputs/annual_map_v3_", percentile, ".png"), height = 6, width = 6, units = "in", res = 500)
     print(p)
@@ -123,13 +114,13 @@ map = function(mode){
   if (mode == "combine") {
     
     #all periods
-    annual = rbind(hadi1, hadi2, hadi3, hadi4, cobe1, cobe2, cobe3, cobe4)
-    annual$sum = range01(annual$sum)
+    annual = rbind(oisst1, oisst2, oisst3, oisst4)
+    annual$sum = annual$sum/120
     annual$season = "Annual"
     annual = annual[, c("x", "y", "sum", "source", "period", "season")]
     
     #seasonals
-    anom = rbind(hadi1, hadi2, hadi3, hadi4, cobe1, cobe2, cobe3, cobe4)
+    anom = rbind(oisst1, oisst2, oisst3, oisst4)
     season_1 = anom[,c("x", "y", "jan", "feb", "mar", "source", "period")]; season_1$season = "Jan-Mar"
     season_2 = anom[,c("x", "y", "jul", "aug", "sep", "source", "period")]; season_2$season = "Jul-Sep"
     season_1$sum = rowSums(season_1[3:5])
@@ -137,25 +128,19 @@ map = function(mode){
     season_1 = season_1[,c(1,2, 6:9)]
     season_2 = season_2[,c(1,2, 6:9)]
     season = rbind(season_1, season_2)
-    season$sum = range01(season$sum)
+    season$sum = season$sum/30
     season = season[, c("x", "y", "sum", "source", "period", "season")]
     
-    anom = rbind(annual, season) %>% group_by(x, y, period, season) %>% summarise(sum = median(sum))
+    anom = rbind(annual, season) %>% group_by(x, y, period, season) %>% summarise(sum = mean(sum))
     
     (p = ggplot(anom) + 
         geom_tile(aes(x, y, fill = sum), width = 1, height = 1) + 
         annotation_map(map_data("world"), fill = "gray50", colour = "gray20", size = 0.5) +
-        scale_fill_gradientn(colors = rev(ipcc_col), "", limits = c(0,1), breaks = c(0, 0.5, 1)) +
-        scale_x_continuous(expand = c(-0.005, 15), "", limits = range(anom$x)) +
-        scale_y_continuous(expand = c(-0.005, 15), "", limits = range(anom$y)) +
-        # coord_fixed() +
-        coord_map("ortho", orientation = c(0, 180, 0)) + #normal
-        facet_grid(season ~ period) +
-        theme(axis.title = element_blank(),
-              axis.text = element_blank(),
-              axis.ticks = element_blank(),
-              legend.position = "bottom",
-              legend.justification = c(1,0)))
+        scale_fill_gradientn(colors = rev(ipcc_col), "") +
+        scale_x_continuous(expand = c(0.1, 0.1), "") +
+        scale_y_continuous(expand = c(0.1, 0.1), "") +
+        coord_fixed() +
+        facet_grid(season ~ period))
     
     png(paste0("outputs/annual_map_v4_", percentile, ".png"), height = 7, width = 10, units = "in", res = 500)
     print(p)
