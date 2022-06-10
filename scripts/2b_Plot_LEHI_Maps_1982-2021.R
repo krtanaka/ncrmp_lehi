@@ -50,53 +50,28 @@ map = function(mode){
     anom = rbind(oisst1, oisst2, oisst3, oisst4)
   
     anom %>% 
+      # mutate(sum = range01(sum)) %>% 
+      mutate(sum = sum/120) %>% # instead of rescaling 0-1, this needs to be divided by total number of months in 10 years
       group_by(period) %>% 
-      mutate(sum = range01(sum)) %>% 
       summarise(mean = mean(sum))
     
-    (p = anom %>% 
-        mutate(sum = range01(sum)) %>% 
-        group_by(x, y, period) %>% 
-        summarise(sum = mean(sum)) %>% 
-        ggplot() + 
-        # geom_raster(aes(x, y, fill = sum)) +
-        geom_tile(aes(x, y, fill = sum), width = 1, height = 1) +
-        annotation_map(map_data("world"), fill = "gray50", colour = "gray20") +
-        scale_fill_gradientn(colors = rev(ipcc_col), "", limits = c(0, 1), breaks = c(0, 0.5, 1)) +
-        facet_grid(~period) +
-        scale_x_continuous(expand = c(-0.005, 15), "") +
-        scale_y_continuous(expand = c(0.1, 0.1), "") +
-        coord_fixed() +
-        # theme_map() + 
-        # coord_sf(xlim = range(anom$x), ylim = range(anom$y)) +
-        # coord_map("ortho", orientation = c(0, 180, 0)) + #normal
-        # coord_map(projection = "mercator") +
-        theme(axis.title = element_blank(),
-              axis.ticks = element_blank(), 
-              axis.text = element_blank(),
-              legend.position = "bottom"))
-    
-    print(p)
-    dev.off()
-    
-    (p = anom %>% 
-        mutate(sum = range01(sum)) %>% 
-        group_by(x, y, period, source) %>% 
-        summarise(sum = median(sum)) %>% 
-        ggplot() +
-        geom_tile(aes(x, y, fill = sum), width = 1, height = 1) + 
-        annotation_map(map_data("world"), fill = "gray50", colour = "gray20", size = 0.5) +
-        scale_fill_gradientn(colors = rev(ipcc_col), "", limits = c(0, 1), breaks = c(0, 0.5, 1)) +
-        scale_x_continuous(expand = c(-0.005, 15), "", limits = range(anom$x)) +
-        scale_y_continuous(expand = c(-0.005, 15), "", limits = range(anom$y)) +
-        facet_grid(source ~ period) +
-        coord_fixed() +
-        theme_cowplot() +
-        theme(axis.title = element_blank(),
-              axis.text = element_blank(),
-              axis.ticks = element_blank(),
-              legend.position = "bottom",
-              legend.justification = c(1,0)))
+    p = anom %>% 
+      # mutate(sum = range01(sum)) %>% 
+      mutate(sum = sum/120) %>% # instead of rescaling 0-1, this needs to be divided by total number of months in 10 years
+      group_by(x, y, period) %>% 
+      summarise(sum = mean(sum)) %>% 
+      ggplot() + 
+      # geom_raster(aes(x, y, fill = sum)) +
+      geom_tile(aes(x, y, fill = sum), width = 1, height = 1) +
+      annotation_map(map_data("world"), fill = "gray50", colour = "gray20") +
+      scale_fill_gradientn(colors = rev(ipcc_col), "", limits = c(0, 1), breaks = c(0, 0.5, 1)) +
+      facet_grid(~period) +
+      scale_x_continuous(expand = c(0.1, 0.1), "") +
+      scale_y_continuous(expand = c(0.1, 0.1), "") +
+      coord_fixed() +
+      # coord_map(projection = "mercator") + 
+      # coord_map("ortho", orientation = c(0, 180, 0)) + #normal
+      theme_void()
     
     png(paste0("outputs/annual_map_v2_", percentile, ".png"), height = 6.5, width = 12, units = "in", res = 500)
     print(p)
