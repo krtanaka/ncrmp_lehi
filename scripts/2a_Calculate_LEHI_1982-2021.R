@@ -26,15 +26,6 @@ region_box
 
 percentile = 0.96667 #based on 30 years baseline (1955-1984)
 
-load('data/OISST_1982-1991.RData'); df1 = monthly_OISST
-load('data/OISST_1992-2001.RData'); df2 = monthly_OISST
-load('data/OISST_2002-2011.RData'); df3 = monthly_OISST
-load('data/OISST_2012-2021.RData'); df4 = monthly_OISST
-
-df = cbind(df1, df2[,3:120], df3[,3:120], df4[,3:120])
-
-rm(df1, df2, df3, df4, monthly_OISST)
-
 calculate_anomalies = function(period, region){
   
   # period = "2012-2021"
@@ -42,7 +33,13 @@ calculate_anomalies = function(period, region){
   
   region_box_i = region_box %>% subset(REGION == region)
   
-  load('data/OISST.RData')
+  load('data/OISST_1982-1991.RData'); df1 = monthly_OISST; names(df1)
+  load('data/OISST_1992-2001.RData'); df2 = monthly_OISST; names(df2)
+  load('data/OISST_2002-2011.RData'); df3 = monthly_OISST; names(df3)
+  load('data/OISST_2012-2021.RData'); df4 = monthly_OISST; names(df4)
+  monthly_OISST = cbind(df1, df2[,3:122], df3[,3:122], df4[,3:122]); names(monthly_OISST)
+  rm(df1, df2, df3, df4)
+  
   df = monthly_OISST %>% subset(x >= region_box_i$min_lon & 
                                   x <= region_box_i$max_lon & 
                                   y >= region_box_i$min_lat & 
@@ -60,10 +57,10 @@ calculate_anomalies = function(period, region){
   
   ll_anom = NULL
   
-  # calculate anomalies at every lot/lon grid cell
+  # calculate lehi at every lot/lon grid cell
   for (ll in 1:dim(Baseline)[1]) { 
     
-    # ll = 2000
+    # ll = 5
     
     print(ll)
     
