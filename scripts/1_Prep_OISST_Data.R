@@ -13,6 +13,7 @@ library(rgdal)
 library(dplyr)
 library(readr)
 
+# too big to save so save them in pieces
 period = c(1982:1991)
 period = c(1992:2001)
 period = c(2002:2011)
