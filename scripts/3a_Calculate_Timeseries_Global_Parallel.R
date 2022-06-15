@@ -17,17 +17,17 @@ registerDoParallel(cores = cores)
 
 percentile = 0.96667 #based on 30 years baseline (1955-1984)
 
-#attach ocean column
-names(Target)
-latlon = Target[,c(1:2)]; plot(latlon, pch = ".")
-coordinates(latlon) = ~x+y
-statarea <- rgdal::readOGR("/Users/ktanaka/Dropbox (MBA)/PAPER Kisei heat extremes/data/World_Seas_IHO_v1/World_Seas.shp")
-CRS.new <- CRS("+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0+datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0") #EPSG:102003
-proj4string(latlon) <- CRS.new
-proj4string(statarea) <- CRS.new
-area <- over(latlon,statarea)
-colnames(area)[1] = "area"
-area = as.data.frame(area[,1])
+# https://www.marineregions.org/downloads.php
+shp <- readOGR("/Users/kisei.tanaka/Desktop/World_12NM_v2_20180221_0_360/eez_12NM_v2_2018_0_360.shp") # World 12 Nautical Miles Zone (Territorial Seas) v2 0-360
+shp <- readOGR("/Users/kisei.tanaka/Desktop/World_EEZ_v10_20180221_HR_0_360/World_EEZ_v10_2018_0_360.shp") #World EEZ v10 0-360
+# shp = recenter(shp)
+CRS.new <- CRS("+proj=longlat +datum=WGS84 +no_defs")
+proj4string(shp) <- CRS.new
+
+sort(unique(shp$Territory1))
+shp <- shp[shp$Territory1 == "Hawaii",]
+
+plot(shp, pch = "."); map(add = T); axis(1); axis(2)# proj4string(latlon) <- CRS.new
 
 calculate_anomalies = function(data){
 
@@ -43,10 +43,31 @@ calculate_anomalies = function(data){
   
   Baseline <- Baseline %>% rasterToPoints() %>% data.frame()
   
+  latlon = Baseline[,c(1:2)]; plot(latlon, pch = ".")
+  coordinates(latlon) = ~x+y
+  proj4string(latlon) <- CRS.new
+  area <- over(latlon, shp)
+  area = as.data.frame(area[,"Territory1"])
+  colnames(area)[1] = "Territory"
+  Baseline = cbind(area, Baseline) %>% na.omit()
+  
   Target <- df[[1:780]] #Jan 1955 - Dec 2019
   values(Target)[values(Target) == -1000] = -1.8 
   
   Target <- Target %>% rasterToPoints() %>% data.frame()
+  
+  latlon = Target[,c(1:2)]; plot(latlon, pch = ".")
+  coordinates(latlon) = ~x+y
+  proj4string(latlon) <- CRS.new
+  area <- over(latlon, shp)
+  area = as.data.frame(area[,"Territory1"])
+  colnames(area)[1] = "Territory"
+  Target = cbind(area, Target) %>% na.omit()
+  
+  lat_lon_group = Target[,1:3]
+  
+  Baseline = Baseline[ , !(names(Baseline) %in% "Territory")]
+  Target = Target[ , !(names(Target) %in% "Territory")]
   
   yy_anom = NULL
   
