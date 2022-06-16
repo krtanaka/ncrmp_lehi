@@ -15,22 +15,38 @@ library(doParallel)
 cores = detectCores()/2
 registerDoParallel(cores = cores)
 
-percentile = 0.96667 #based on 30 years baseline (1955-1984)
-
 # https://www.marineregions.org/downloads.php
-shp <- readOGR("/Users/kisei.tanaka/Desktop/World_12NM_v2_20180221_0_360/eez_12NM_v2_2018_0_360.shp") # World 12 Nautical Miles Zone (Territorial Seas) v2 0-360
-shp <- readOGR("/Users/kisei.tanaka/Desktop/World_EEZ_v10_20180221_HR_0_360/World_EEZ_v10_2018_0_360.shp") #World EEZ v10 0-360
+# shp <- readOGR("G:/GIS/nm/World_12NM_v3_20191118_0_360/eez_12nm_v3_0_360.shp") # World 12 Nautical Miles Zone (Territorial Seas) v2 0-360
+shp <- readOGR("G:/GIS/eez/World_EEZ_v10_20180221_HR_0_360/World_EEZ_v10_2018_0_360.shp") #World EEZ v10 0-360
+shp <- shp[shp$Pol_type != "Overlapping claim",]
+shp <- shp[shp$Sovereign1 == "United States",]
 # shp = recenter(shp)
 CRS.new <- CRS("+proj=longlat +datum=WGS84 +no_defs")
-proj4string(shp) <- CRS.new
+proj4string(shp) <- CRS.new # proj4string(latlon) <- CRS.new
 
 sort(unique(shp$Territory1))
-shp <- shp[shp$Territory1 == "Hawaii",]
 
-plot(shp, pch = "."); map(add = T); axis(1); axis(2)# proj4string(latlon) <- CRS.new
+region_list = c("American Samoa", 
+                "Guam", 
+                "Hawaii", 
+                "Howland and Baker islands", 
+                "Jarvis Island", 
+                "Johnston Atoll", 
+                "Northern Mariana Islands",
+                "Palmyra Atoll", 
+                "Wake Island")
 
-calculate_anomalies = function(data){
+shp_pacific <- shp[shp$Territory1 %in% region_list,]
+plot(shp_pacific, pch = "."); map(add = T); axis(1); axis(2)
 
+calculate_anomalies = function(data, region){
+  
+  percentile = 0.96667 #based on 30 years baseline (1955-1984)
+  
+  # region = "Guam"
+  
+  shp_i <- shp[shp$Territory1 %in% region,]
+  
   # data = c("HadI", "COBE")[2]
   
   load(paste0('data/', data, "_SST.RData"))
@@ -143,9 +159,32 @@ calculate_anomalies = function(data){
   axis(2, las = 2, at = seq(0, 0.8, 0.1))
   abline(h = 0.5, lty = 2)
   
-  save(yy_anom, file = paste0("outputs/", data, "_timeseries_", percentile, ".RData"))
+  save(yy_anom, file = paste0("outputs/", data, "_timeseries_", percentile, "_", region, ".RData"))
   
 }
 
+calculate_anomalies("HadI", "American Samoa")
+calculate_anomalies("HadI", "Guam")
+calculate_anomalies("HadI", "Hawaii")
+calculate_anomalies("HadI", "Howland and Baker islands")
+calculate_anomalies("HadI", "Jarvis Island")
+calculate_anomalies("HadI", "Johnston Atoll")
+calculate_anomalies("HadI", "Northern Mariana Islands")
+calculate_anomalies("HadI", "Palmyra Atoll")
+calculate_anomalies("HadI", "Wake Island")
+
+
+calculate_anomalies("COBE")
 calculate_anomalies("HadI")
 calculate_anomalies("COBE")
+calculate_anomalies("HadI")
+calculate_anomalies("COBE")
+calculate_anomalies("HadI")
+calculate_anomalies("COBE")
+calculate_anomalies("HadI")
+calculate_anomalies("COBE")
+calculate_anomalies("HadI")
+calculate_anomalies("COBE")
+calculate_anomalies("COBE")
+
+
