@@ -44,7 +44,7 @@ calculate_anomalies = function(data, region){
   
   percentile = 0.96667 #based on 30 years baseline (1955-1984)
   
-  # region = "Guam"
+  # region = "NCRMP"
   
   shp_i <- shp[shp$Territory1 %in% region,]
   
@@ -55,36 +55,43 @@ calculate_anomalies = function(data, region){
   # set baseline Jan 1955 - Dec 1984, 50 years CMIP6 ENSMN historical climate (1955-1984) https://psl.noaa.gov/ipcc/cmip6/ccwp6.html
   Baseline <- df[[1:360]]
   values(Baseline)[values(Baseline) == -1000] = -1.8
-  
   names(Baseline)
-  
   Baseline <- Baseline %>% rasterToPoints() %>% data.frame()
+  plot(Baseline[,1:2], pch = 20)
   
-  latlon = Baseline[,c(1:2)]; plot(latlon, pch = ".")
-  coordinates(latlon) = ~x+y
-  proj4string(latlon) <- CRS.new
-  area <- over(latlon, shp)
-  area = as.data.frame(area[,"Territory1"])
-  colnames(area)[1] = "Territory"
-  Baseline = cbind(area, Baseline) %>% na.omit()
+  if (region != "NCRMP") {
+    
+    latlon = Baseline[,c(1:2)]
+    coordinates(latlon) = ~x+y
+    proj4string(latlon) <- CRS.new
+    area <- over(latlon, shp_i)
+    area = as.data.frame(area[,"Territory1"])
+    colnames(area)[1] = "Territory"
+    Baseline = cbind(area, Baseline) %>% na.omit()
+    Baseline = Baseline[ , !(names(Baseline) %in% "Territory")]
+    plot(Baseline[,1:2], pch = 20)
+    
+  }
   
   Target <- df[[1:780]] #Jan 1955 - Dec 2019
   values(Target)[values(Target) == -1000] = -1.8 
-  
+  names(Baseline)
   Target <- Target %>% rasterToPoints() %>% data.frame()
+  plot(Target[,1:2], pch = 20)
   
-  latlon = Target[,c(1:2)]; plot(latlon, pch = ".")
-  coordinates(latlon) = ~x+y
-  proj4string(latlon) <- CRS.new
-  area <- over(latlon, shp)
-  area = as.data.frame(area[,"Territory1"])
-  colnames(area)[1] = "Territory"
-  Target = cbind(area, Target) %>% na.omit()
-  
-  lat_lon_group = Target[,1:3]
-  
-  Baseline = Baseline[ , !(names(Baseline) %in% "Territory")]
-  Target = Target[ , !(names(Target) %in% "Territory")]
+  if (region != "NCRMP") {
+    
+    latlon = Target[,c(1:2)]; plot(latlon, pch = ".")
+    coordinates(latlon) = ~x+y
+    proj4string(latlon) <- CRS.new
+    area <- over(latlon, shp_i)
+    area = as.data.frame(area[,"Territory1"])
+    colnames(area)[1] = "Territory"
+    Target = cbind(area, Target) %>% na.omit()
+    Target = Target[ , !(names(Target) %in% "Territory")]
+    plot(Target[,1:2], pch = 20)
+    
+  }
   
   yy_anom = NULL
   
@@ -157,7 +164,7 @@ calculate_anomalies = function(data, region){
   
   plot(yy_anom$year_sum, type = "o", axes = F, pch = ".", xlab = "", ylab = "")
   axis(1)
-  axis(2, las = 2, at = seq(0, 0.8, 0.1))
+  axis(2, las = 2, at = seq(0, 1, 0.1))
   abline(h = 0.5, lty = 2)
   
   save(yy_anom, file = paste0("outputs/", data, "_timeseries_", percentile, "_", region, ".RData"))
