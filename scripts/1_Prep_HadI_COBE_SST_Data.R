@@ -45,6 +45,7 @@ save(df, file = "data/COBE_SST.Rdata")
 #Hadley
 df = stack(paste0("/Users/", Sys.info()[7], "/Desktop/HadI_sst.nc"), varname = "sst")
 df = df[[1021:1800]] #trim to 1955-2019
+had_names = names(df)
 # Cut in two pieces, change the extent of the western hemisphere, and merge again.
 x1 <- crop(df, extent(-180, 0, -90, 90))
 x2 <- crop(df, extent(0, 180, -90, 90))   
@@ -53,4 +54,5 @@ df <- merge(x1, x2)
 df = crop(df, e); plot(df[[1]]);maps::map(add = T)
 assign("df", df, .GlobalEnv)
 df = readAll(df)
+names(df) = had_names
 save(df, file = "data/HadI_SST.Rdata")
