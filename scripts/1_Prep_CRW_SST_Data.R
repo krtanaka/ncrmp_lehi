@@ -14,21 +14,14 @@ library(dplyr)
 library(readr)
 library(doParallel)
 
-cores = detectCores()/2
+cores = detectCores()-2
 registerDoParallel(cores = cores)
 
-nc_list = list.files(path = "M:/Environmental Data Summary/DataDownload/SST_CRW_Daily/Island_Level_Data/", pattern = "\\.nc$", full.names = T)
-nc_list
-nc_list = nc_list[1:3]
+nc_list = list.files(path = "M:/Environmental Data Summary/DataDownload/SST_CRW_Daily/Island_Level_Data/", pattern = "\\.nc$", full.names = T); nc_list
 
-# monthly_CRW = NULL
-
-# for (isl in 1:length(nc_list)) {
 r <- foreach(isl = 1:3, .combine = rbind, .packages = c("raster", "dplyr")) %dopar% {
   
-  isl = 1
-  
-  # print(nc_list[isl])
+  # isl = 1
   
   df = stack(nc_list[isl], varname = "analysed_sst")
   df <- df %>% rasterToPoints() %>% data.frame()
@@ -54,8 +47,6 @@ r <- foreach(isl = 1:3, .combine = rbind, .packages = c("raster", "dplyr")) %dop
   rownames(df) <- NULL
   
   df
-  
-  # monthly_CRW = rbind(monthly_CRW, df)
   
 }
 
