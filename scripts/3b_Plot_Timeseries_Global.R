@@ -12,7 +12,47 @@ percentile = 0.96667 #based on 30 years baseline (1955-1984)
 ### load area fraction time series results 1900-2019 ###
 ########################################################
 
+region_list = c("American Samoa", 
+                "Guam", 
+                "Hawaii", 
+                "Howland and Baker islands", 
+                "Jarvis Island", 
+                "Johnston Atoll", 
+                "Northern Mariana Islands",
+                "Palmyra Atoll", 
+                "Wake Island",
+                "NCRMP")
+
+lehi_time = NULL
+
+for (y in 1:length(region_list)) {
+  
+  # y = 1
+  
+  load(paste0("outputs/HadI_timeseries_0.96667_", region_list[y], ".RData"))
+  hadi = yy_anom
+  hadi$data = "HadI"
+  hadi$region = region_list[y]
+  
+  load(paste0("outputs/COBE_timeseries_0.96667_", region_list[y], ".RData"))
+  cobe = yy_anom
+  cobe$data = "COBE"
+  cobe$region = region_list[y]
+  
+  df = rbind(hadi, cobe); rm(cobe, hadi)  
+  
+  lehi_time = rbind(lehi_time, df)
+  
+}
+
 load("outputs/HadI_timeseries_0.96667.RData"); hadi = yy_anom; hadi$region = "NCRMP"
+load("outputs/HadI_timeseries_0.96667.RData"); hadi = yy_anom; hadi$region = "NCRMP"
+load("outputs/HadI_timeseries_0.96667.RData"); hadi = yy_anom; hadi$region = "NCRMP"
+load("outputs/HadI_timeseries_0.96667.RData"); hadi = yy_anom; hadi$region = "NCRMP"
+load("outputs/HadI_timeseries_0.96667.RData"); hadi = yy_anom; hadi$region = "NCRMP"
+load("outputs/HadI_timeseries_0.96667.RData"); hadi = yy_anom; hadi$region = "NCRMP"
+load("outputs/HadI_timeseries_0.96667.RData"); hadi = yy_anom; hadi$region = "NCRMP"
+
 load("outputs/COBE_timeseries_0.96667.RData"); cobe = yy_anom; cobe$region = "NCRMP"
 
 hadi$data = "HadISST"
