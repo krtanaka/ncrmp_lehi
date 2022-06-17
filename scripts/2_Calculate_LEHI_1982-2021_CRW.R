@@ -76,7 +76,7 @@ calculate_anomalies = function(period){
   
   anom$sum = rowSums(anom[3:14])
   
-  save(anom, file = paste0("outputs/OISST_", percentile, "_", region, "_LEHI_", period, ".RData"))
+  save(anom, file = paste0("outputs/CRW_", percentile, "_LEHI_", period, ".RData"))
   
   # beepr::beep(2)
   
