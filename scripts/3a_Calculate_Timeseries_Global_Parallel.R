@@ -14,10 +14,13 @@ library(doParallel)
 
 cores = detectCores()/2
 registerDoParallel(cores = cores)
+registerDoParallel(cores = 60)
 
 # https://www.marineregions.org/downloads.php
 # shp <- readOGR("G:/GIS/nm/World_12NM_v3_20191118_0_360/eez_12nm_v3_0_360.shp") # World 12 Nautical Miles Zone (Territorial Seas) v2 0-360
 shp <- readOGR("G:/GIS/eez/World_EEZ_v10_20180221_HR_0_360/World_EEZ_v10_2018_0_360.shp") #World EEZ v10 0-360
+shp <- readOGR("/mnt/ldrive/ktanaka/GIS/eez/World_EEZ_v10_20180221_HR_0_360/World_EEZ_v10_2018_0_360.shp") #World EEZ v10 0-360
+
 shp <- shp[shp$Pol_type != "Overlapping claim",]
 shp <- shp[shp$Sovereign1 == "United States",]
 # shp = recenter(shp)
@@ -180,6 +183,7 @@ calculate_anomalies("HadI", "Johnston Atoll")
 calculate_anomalies("HadI", "Northern Mariana Islands")
 calculate_anomalies("HadI", "Palmyra Atoll")
 calculate_anomalies("HadI", "Wake Island")
+calculate_anomalies("HadI", "NCRMP")
 
 calculate_anomalies("COBE", "American Samoa")
 calculate_anomalies("COBE", "Guam")
@@ -190,5 +194,4 @@ calculate_anomalies("COBE", "Johnston Atoll")
 calculate_anomalies("COBE", "Northern Mariana Islands")
 calculate_anomalies("COBE", "Palmyra Atoll")
 calculate_anomalies("COBE", "Wake Island")
-
-
+calculate_anomalies("COBE", "NCRMP")
