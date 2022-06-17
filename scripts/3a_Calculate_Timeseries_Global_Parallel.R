@@ -34,7 +34,8 @@ region_list = c("American Samoa",
                 "Johnston Atoll", 
                 "Northern Mariana Islands",
                 "Palmyra Atoll", 
-                "Wake Island")
+                "Wake Island",
+                "NCRMP")
 
 shp_pacific <- shp[shp$Territory1 %in% region_list,]
 plot(shp_pacific, pch = "."); map(add = T); axis(1); axis(2)
@@ -173,18 +174,14 @@ calculate_anomalies("HadI", "Northern Mariana Islands")
 calculate_anomalies("HadI", "Palmyra Atoll")
 calculate_anomalies("HadI", "Wake Island")
 
-
-calculate_anomalies("COBE")
-calculate_anomalies("HadI")
-calculate_anomalies("COBE")
-calculate_anomalies("HadI")
-calculate_anomalies("COBE")
-calculate_anomalies("HadI")
-calculate_anomalies("COBE")
-calculate_anomalies("HadI")
-calculate_anomalies("COBE")
-calculate_anomalies("HadI")
-calculate_anomalies("COBE")
-calculate_anomalies("COBE")
+calculate_anomalies("COBE", "American Samoa")
+calculate_anomalies("COBE", "Guam")
+calculate_anomalies("COBE", "Hawaii")
+calculate_anomalies("COBE", "Howland and Baker islands")
+calculate_anomalies("COBE", "Jarvis Island")
+calculate_anomalies("COBE", "Johnston Atoll")
+calculate_anomalies("COBE", "Northern Mariana Islands")
+calculate_anomalies("COBE", "Palmyra Atoll")
+calculate_anomalies("COBE", "Wake Island")
 
 
