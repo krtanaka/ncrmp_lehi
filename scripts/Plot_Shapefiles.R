@@ -2,6 +2,7 @@ library(readr)
 library(dplyr)
 library(ggplot2)
 library(rgdal)
+library(rgeos)
 library(sf)
 
 rm(list = ls())
@@ -46,13 +47,13 @@ png("outputs/Pacific_EEZ.png", units = "in", res = 500, height = 8, width = 10)
 eez %>%
   ggplot() + 
   geom_sf(data = pacific_crop, size = 0, fill = "gray", color = "gray20") +
-  geom_sf(fill = "lightblue", color = "lightblue", alpha = 0.3) + 
+  geom_sf(fill = "lightblue", alpha = 0.8, lwd = 0) + 
   geom_sf_label(aes(label = Territory1)) + 
   scale_x_continuous(expand = c(0, 0), "", limits = c(140, 210)) +
   scale_y_continuous(expand = c(0, 0), "", limits = c(-18, 32)) +
   guides(fill = guide_legend(nrow = 5), "") + 
   # theme_map() +
-  theme_minimal() + 
+  # theme_light() +
   theme(legend.position = c(1, 0),
         legend.justification = c(1, -0.1),
         panel.grid.major = element_line(colour = "gray80", size = 0.2))
