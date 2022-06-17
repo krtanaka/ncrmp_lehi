@@ -179,7 +179,6 @@ df$region = factor(df$region, levels = c("NCRMP",
 
 (p = df %>% 
     # subset(region != "NCRMP") %>%
-    # subset(region == "NCRMP") %>%
     ggplot(aes(Year, year_sum, colour = year_sum)) +
     geom_line(color = "gray80") +
     geom_point(alpha = 0.8, size = 5)  +
