@@ -12,16 +12,23 @@ library(sf)
 library(rgdal)
 library(dplyr)
 library(readr)
+library(doParallel)
 
-nc_list = list.files(path = "M:/Environmental Data Summary/DataDownload/SST_CRW_Daily/Island_Level_Data/", pattern = "\\.nc$", full.names = T); nc_list
+cores = detectCores()/2
+registerDoParallel(cores = cores)
 
-monthly_CRW = NULL
+nc_list = list.files(path = "M:/Environmental Data Summary/DataDownload/SST_CRW_Daily/Island_Level_Data/", pattern = "\\.nc$", full.names = T)
+nc_list
+nc_list = nc_list[1:3]
 
-for (isl in 1:length(nc_list)) {
+# monthly_CRW = NULL
+
+# for (isl in 1:length(nc_list)) {
+r <- foreach(isl = 1:3, .combine = rbind, .packages = c("raster", "dplyr")) %dopar% {
   
-  # isl = 1
+  isl = 1
   
-  print(nc_list[isl])
+  # print(nc_list[isl])
   
   df = stack(nc_list[isl], varname = "analysed_sst")
   df <- df %>% rasterToPoints() %>% data.frame()
@@ -42,15 +49,16 @@ for (isl in 1:length(nc_list)) {
   }
   
   monthly_mean = as.data.frame(monthly_mean)
-  
   colnames(monthly_mean) = paste0("X", month_vec)
-  
   df = cbind(df[,1:2], monthly_mean)
-  
   rownames(df) <- NULL
   
-  monthly_CRW = rbind(monthly_CRW, df)
+  df
+  
+  # monthly_CRW = rbind(monthly_CRW, df)
   
 }
+
+monthly_CRW = as.data.frame(r)
 
 save(monthly_CRW, file = "data/CRW_1985-2019.RData")
