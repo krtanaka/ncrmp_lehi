@@ -6,29 +6,6 @@ library(sf)
 
 rm(list = ls())
 
-### plot LME shapefile
-
-lme <- readOGR("data/LME66/LMEs66.shp")
-lme <- rmapshaper::ms_simplify(lme, keep = 0.01, keep_shapes = F)
-lme <- lme %>% st_as_sf()  
-
-world <- fortify(rworldmap::getMap())
-
-png(paste0("/Users/", Sys.info()[7], "/Desktop/LME.png"), units = "in", res = 100, height = 18, width = 30)
-
-lme %>% 
-  # subset(LME_NAME %in% c("East Brazil Shelf", "Somali Coastal Current", "Sulu-Celebes Sea")) %>%
-  # subset(LME_NAME %in% c("California Current", "Humboldt Current", "Canadian High Arctic - North Greenland")) %>% 
-  ggplot() + 
-  geom_sf(aes(group = LME_NAME, fill = LME_NAME), color = "NA", show.legend = T) + 
-  scale_fill_discrete("") +
-  theme_void() + 
-  geom_map(data = world, map = world, aes(x = long, y = lat, map_id = id),color = "gray60", fill = "gray40", size = 0.001) + 
-  guides(fill = guide_legend(nrow = 5), "") + 
-  theme(legend.position = "bottom")
-
-dev.off()
-
 ### plot EEZ ###
 eez <- readOGR(dsn = "data/EEZ_land_union", layer = "EEZ_land_v2_201410")
 eez <- rmapshaper::ms_simplify(eez, keep = 0.01, keep_shapes = F)
