@@ -73,7 +73,6 @@ map = function(mode){
         scale_x_continuous(expand = c(-0.005, 15), "", limits = range(anom$x)) +
         scale_y_continuous(expand = c(-0.005, 15), "", limits = range(anom$y)) +
         facet_wrap(~period, nrow = 2) +
-        theme_minimal() +
         # coord_fixed() + 
         # coord_sf(xlim = range(anom$x), ylim = range(anom$y)) +
         coord_map("ortho", orientation = c(0, 180, 0)) + #normal
@@ -83,12 +82,11 @@ map = function(mode){
               axis.text = element_blank(),
               legend.position = "bottom"))
     
-    png(paste0("outputs/annual_map_v1_", percentile, ".png"), height = 6.5, width = 6, units = "in", res = 500)
+    png(paste0("outputs/HadI_COBE_annual_map_v1_", percentile, ".png"), height = 6.5, width = 6, units = "in", res = 500)
     print(p)
     dev.off()
     
     (p = anom %>% 
-        # mutate(sum = range01(sum)) %>% 
         group_by(x, y, period, source) %>% 
         summarise(sum = median(sum)/120) %>% 
         ggplot() +
@@ -105,7 +103,7 @@ map = function(mode){
               legend.position = "bottom",
               legend.justification = c(1,0)))
     
-    png(paste0("outputs/annual_map_v2_", percentile, ".png"), height = 6.5, width = 12, units = "in", res = 500)
+    png(paste0("outputs/HadI_COBE_annual_map_v2_", percentile, ".png"), height = 6.5, width = 12, units = "in", res = 500)
     print(p)
     dev.off()
     
@@ -138,14 +136,14 @@ map = function(mode){
         scale_fill_gradientn(colors = rev(ipcc_col), "", limits = c(-1, 1), breaks = c(-1, 0, 1)) +
         scale_x_continuous(expand = c(-0.005, 15), "", limits = range(anom$x)) +
         scale_y_continuous(expand = c(-0.005, 15), "", limits = range(anom$y)) +
-        # coord_map("ortho", orientation = c(0, 180, 0)) + #normal
-        theme(axis.title = element_blank(),
-              axis.text = element_blank(),
-              axis.ticks = element_blank(),
-              legend.position = "bottom",
-              legend.justification = c(1,0)))
+        coord_map("ortho", orientation = c(0, 180, 0)) + #normal
+        theme(#axis.title = element_blank(),
+          #axis.text = element_blank(),
+          #axis.ticks = element_blank(),
+          legend.position = "bottom",
+          legend.justification = c(1,0)))
     
-    png(paste0("outputs/annual_map_v3_", percentile, ".png"), height = 6, width = 6, units = "in", res = 500)
+    png(paste0("outputs/HadI_COBE_annual_map_v3_", percentile, ".png"), height = 6, width = 6, units = "in", res = 500)
     print(p)
     dev.off()
     
@@ -188,7 +186,7 @@ map = function(mode){
               legend.position = "bottom",
               legend.justification = c(1,0)))
     
-    png(paste0("outputs/annual_map_v4_", percentile, ".png"), height = 7, width = 10, units = "in", res = 500)
+    png(paste0("outputs/HadI_COBE_annual_map_v4_", percentile, ".png"), height = 7, width = 10, units = "in", res = 500)
     print(p)
     dev.off()
     
