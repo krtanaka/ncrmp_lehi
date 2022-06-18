@@ -12,9 +12,8 @@ library(dplyr)
 library(maps)
 library(doParallel)
 
-cores = detectCores()/2
+cores = detectCores()-2
 registerDoParallel(cores = cores)
-registerDoParallel(cores = 60)
 
 # https://www.marineregions.org/downloads.php
 # shp <- readOGR("G:/GIS/nm/World_12NM_v3_20191118_0_360/eez_12nm_v3_0_360.shp") # World 12 Nautical Miles Zone (Territorial Seas) v2 0-360
@@ -47,7 +46,7 @@ calculate_anomalies = function(region){
   
   percentile = 0.96667 #based on 30 years baseline (1955-1984)
   
-  # region = "NCRMP"
+  # region = "Guam"
   
   shp_i <- shp[shp$Territory1 %in% region,]
   
@@ -91,7 +90,7 @@ calculate_anomalies = function(region){
   
   yy_anom = NULL
   
-  for (y in 1:37) { #every year between 1955-2019
+  for (y in 1:37) { #every year between 1985-2021
     
     # y = 1
     
@@ -150,11 +149,11 @@ calculate_anomalies = function(region){
     year_sum = colSums(r) #sum number of grid above monthly baseline 
     year_sum = colSums(r)/dim(Baseline)[1] #divide by total grid cell
     year_sum = as.data.frame(year_sum)
-    year_sum$time = paste0(1954+y, "-", seq(1, 12, 1))
+    year_sum$time = paste0(1984+y, "-", seq(1, 12, 1))
     
     yy_anom = rbind(yy_anom, year_sum)
     
-    print(1954+y)
+    print(1984+y)
     
   }
   
