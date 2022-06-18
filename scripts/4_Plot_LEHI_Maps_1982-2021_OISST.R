@@ -36,7 +36,7 @@ ipcc_col <- c(rgb(103, 0, 31, maxColorValue = 255, alpha = 255),
               rgb(33, 102, 172, maxColorValue = 255, alpha = 255),
               rgb(5, 48, 97, maxColorValue = 255, alpha = 255))
 
-region = c("MARIAN", "MHI", "NWHI", "PRIAs", "SAMOA")[1]
+region = c("MARIAN", "MHI", "NWHI", "PRIAs", "SAMOA")[5]
 
 map = function(mode){
   
@@ -48,30 +48,30 @@ map = function(mode){
   if (mode == "annual") {
     
     anom = rbind(oisst1, oisst2, oisst3, oisst4)
-  
+    
     anom %>% 
       # mutate(sum = range01(sum)) %>% 
       mutate(sum = sum/120) %>% # instead of rescaling 0-1, this needs to be divided by total number of months in 10 years
       group_by(period) %>% 
       summarise(mean = mean(sum))
     
-    p = anom %>% 
-      # mutate(sum = range01(sum)) %>% 
-      mutate(sum = sum/120) %>% # instead of rescaling 0-1, this needs to be divided by total number of months in 10 years
-      group_by(x, y, period) %>% 
-      summarise(sum = mean(sum)) %>% 
-      ggplot() + 
-      # geom_raster(aes(x, y, fill = sum)) +
-      geom_tile(aes(x, y, fill = sum), width = 1, height = 1) +
-      annotation_map(map_data("world"), fill = "gray50", colour = "gray20") +
-      scale_fill_gradientn(colors = rev(ipcc_col), "") +
-      facet_grid(~period) +
-      scale_x_continuous(expand = c(0.1, 0.1), "") +
-      scale_y_continuous(expand = c(0.1, 0.1), "") +
-      # coord_fixed() +
-      coord_map(projection = "mercator") +
-      # coord_map("ortho", orientation = c(0, 180, 0)) + #normal
-      theme_void()
+    (p = anom %>% 
+        # mutate(sum = range01(sum)) %>% 
+        mutate(sum = sum/120) %>% # instead of rescaling 0-1, this needs to be divided by total number of months in 10 years
+        group_by(x, y, period) %>% 
+        summarise(sum = mean(sum)) %>% 
+        ggplot() + 
+        # geom_raster(aes(x, y, fill = sum)) +
+        geom_tile(aes(x, y, fill = sum), width = 1, height = 1) +
+        annotation_map(map_data("world"), fill = "gray50", colour = "gray20") +
+        scale_fill_gradientn(colors = rev(ipcc_col), "", limits = c(0,1)) +
+        facet_grid(~period) +
+        # coord_fixed() + 
+        # coord_map(projection = "mercator") +
+        coord_map("ortho", orientation = c(0, median(anom$x), 0)) +
+        theme_map() +
+        scale_x_continuous(expand = c(0.1, 0.1), "") +
+        scale_y_continuous(expand = c(0.1, 0.1), ""))
     
     png(paste0("outputs/annual_map_v2_", percentile, ".png"), height = 6.5, width = 12, units = "in", res = 500)
     print(p)
@@ -139,7 +139,7 @@ map = function(mode){
         scale_fill_gradientn(colors = rev(ipcc_col), "") +
         scale_x_continuous(expand = c(0.1, 0.1), "") +
         scale_y_continuous(expand = c(0.1, 0.1), "") +
-        coord_fixed() +
+        coord_map("ortho", orientation = c(0, median(anom$x), 0)) +
         facet_grid(season ~ period))
     
     png(paste0("outputs/annual_map_v4_", percentile, ".png"), height = 7, width = 10, units = "in", res = 500)
