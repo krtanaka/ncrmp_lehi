@@ -12,8 +12,6 @@ library(dplyr)
 library(maps)
 library(doParallel)
 
-nc_list = list.files(path = "/Users/kisei.tanaka/Desktop/SST_CRW_Monthly/Island_Level_Data/", pattern = "\\.nc$", full.names = T); nc_list
-
 cores = detectCores()/2
 registerDoParallel(cores = cores)
 registerDoParallel(cores = 60)
@@ -45,7 +43,7 @@ region_list = c("American Samoa",
 shp_pacific <- shp[shp$Territory1 %in% region_list,]
 plot(shp_pacific, pch = "."); map(add = T); axis(1); axis(2)
 
-calculate_anomalies = function(data, region){
+calculate_anomalies = function(region){
   
   percentile = 0.96667 #based on 30 years baseline (1955-1984)
   
@@ -53,15 +51,11 @@ calculate_anomalies = function(data, region){
   
   shp_i <- shp[shp$Territory1 %in% region,]
   
-  # data = c("HadI", "COBE")[2]
+  load("data/CRW_1985-2021.RData")
   
-  load("data/CRW_1985-2021.RData"); df = monthly_CRW
-  
-  # set baseline Jan 1955 - Dec 1984, 50 years CMIP6 ENSMN historical climate (1955-1984) https://psl.noaa.gov/ipcc/cmip6/ccwp6.html
-  Baseline <- df[[1:360]]
-  values(Baseline)[values(Baseline) == -1000] = -1.8
+  # set baseline Jan 1985 - Dec 2014
+  Baseline <- monthly_CRW[,1:360]
   names(Baseline)
-  Baseline <- Baseline %>% rasterToPoints() %>% data.frame()
   plot(Baseline[,1:2], pch = 20)
   
   if (region != "NCRMP") {
@@ -78,10 +72,7 @@ calculate_anomalies = function(data, region){
     
   }
   
-  Target <- df[[1:780]] #Jan 1955 - Dec 2019
-  values(Target)[values(Target) == -1000] = -1.8 
-  names(Baseline)
-  Target <- Target %>% rasterToPoints() %>% data.frame()
+  Target <- monthly_CRW[,1:446] #Jan 1985 - Dec 2021
   plot(Target[,1:2], pch = 20)
   
   if (region != "NCRMP") {
@@ -100,7 +91,7 @@ calculate_anomalies = function(data, region){
   
   yy_anom = NULL
   
-  for (y in 1:65) { #every year between 1955-2019
+  for (y in 1:37) { #every year between 1955-2019
     
     # y = 1
     
@@ -172,7 +163,7 @@ calculate_anomalies = function(data, region){
   axis(2, las = 2, at = seq(0, 1, 0.1))
   abline(h = 0.5, lty = 2)
   
-  save(yy_anom, file = paste0("outputs/", data, "_timeseries_", percentile, "_", region, ".RData"))
+  save(yy_anom, file = paste0("outputs/CRW_timeseries_", percentile, "_", region, ".RData"))
   
 }
 
@@ -186,14 +177,3 @@ calculate_anomalies("HadI", "Northern Mariana Islands")
 calculate_anomalies("HadI", "Palmyra Atoll")
 calculate_anomalies("HadI", "Wake Island")
 calculate_anomalies("HadI", "NCRMP")
-
-calculate_anomalies("COBE", "American Samoa")
-calculate_anomalies("COBE", "Guam")
-calculate_anomalies("COBE", "Hawaii")
-calculate_anomalies("COBE", "Howland and Baker islands")
-calculate_anomalies("COBE", "Jarvis Island")
-calculate_anomalies("COBE", "Johnston Atoll")
-calculate_anomalies("COBE", "Northern Mariana Islands")
-calculate_anomalies("COBE", "Palmyra Atoll")
-calculate_anomalies("COBE", "Wake Island")
-calculate_anomalies("COBE", "NCRMP")
