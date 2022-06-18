@@ -167,13 +167,13 @@ calculate_anomalies = function(region){
   
 }
 
-calculate_anomalies("HadI", "American Samoa")
-calculate_anomalies("HadI", "Guam")
-calculate_anomalies("HadI", "Hawaii")
-calculate_anomalies("HadI", "Howland and Baker islands")
-calculate_anomalies("HadI", "Jarvis Island")
-calculate_anomalies("HadI", "Johnston Atoll")
-calculate_anomalies("HadI", "Northern Mariana Islands")
-calculate_anomalies("HadI", "Palmyra Atoll")
-calculate_anomalies("HadI", "Wake Island")
-calculate_anomalies("HadI", "NCRMP")
+calculate_anomalies("American Samoa")
+calculate_anomalies("Guam")
+calculate_anomalies("Hawaii")
+calculate_anomalies("Howland and Baker islands")
+calculate_anomalies("Jarvis Island")
+calculate_anomalies("Johnston Atoll")
+calculate_anomalies("Northern Mariana Islands")
+calculate_anomalies("Palmyra Atoll")
+calculate_anomalies("Wake Island")
+calculate_anomalies("NCRMP")
