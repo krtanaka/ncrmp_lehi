@@ -85,13 +85,14 @@ ipcc_col <- c(rgb(103, 0, 31, maxColorValue = 255, alpha = 255),
               rgb(5, 48, 97, maxColorValue = 255, alpha = 255))
 
 exceeded_times  %>% 
-  ggplot(aes(Year, y = region, fill = region)) +
+  ggplot(aes(as.numeric(Year), y = region, fill = region)) +
   # scale_fill_manual(values = cols, "") +
-  geom_tile(show.legend = F) +
+  geom_tile(show.legend = F, height = 0.5) +
   labs(x = "", y = "") +
-  theme_light() + 
+  theme_light() +
   geom_hline(yintercept = seq(0.5, 8), color = 'white', size = 2) + 
-  theme(axis.text.x = element_text(angle = 270, vjust = 0.5, hjust=1))
+  scale_x_continuous(breaks = seq(1950, 2020, 10), limits = c(1955, 2020)) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 all_year = data.frame(Year = seq(1955, 2019, by = 1))
 
