@@ -167,7 +167,9 @@ df %>% mutate(period = ifelse(Year %in% c(1955:1987), "1st", "2nd")) %>%
   summarise(sum = mean(year_sum)) %>% 
   mutate(percent = (sum/lag(sum)-1)*100)
 
-df$region = factor(df$region, levels = c("NCRMP",
+df$region = ifelse(df$region == "NCRMP", "Pacific NCRMP", df$region)
+
+df$region = factor(df$region, levels = c("Pacific NCRMP",
                                          "American Samoa", 
                                          "Guam", 
                                          "Hawaii", 
