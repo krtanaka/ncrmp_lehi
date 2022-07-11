@@ -70,19 +70,19 @@ map = function(mode){
         geom_tile(aes(x, y, fill = sum), width = 1, height = 1) + 
         annotation_map(map_data("world"), fill = "gray50", colour = "gray20") +
         scale_fill_gradientn(colors = rev(ipcc_col), "", limits = c(0, 1), breaks = c(0, 0.5, 1)) +
-        scale_x_continuous(expand = c(-0.005, 15), "", limits = range(anom$x)) +
-        scale_y_continuous(expand = c(-0.005, 15), "", limits = range(anom$y)) +
-        facet_wrap(~period, nrow = 2) +
-        # coord_fixed() + 
+        scale_x_continuous(expand = c(-0.005, 3), "", limits = range(anom$x)) +
+        scale_y_continuous(expand = c(-0.005, 3), "", limits = range(anom$y)) +
+        facet_wrap(~period, nrow = 1) +
         # coord_sf(xlim = range(anom$x), ylim = range(anom$y)) +
-        coord_map("ortho", orientation = c(0, 180, 0)) + #normal
+        coord_map("ortho", orientation = c(0, median(anom$x), 0)) +
         # coord_map(projection = "mercator") +
         theme(axis.title = element_blank(),
               axis.ticks = element_blank(), 
               axis.text = element_blank(),
-              legend.position = "bottom"))
+              legend.position = "bottom",
+              legend.justification = c(1,0)))
     
-    png(paste0("outputs/HadI_COBE_annual_map_v1_", percentile, ".png"), height = 6.5, width = 6, units = "in", res = 500)
+    png(paste0("outputs/HadI_COBE_annual_map_v1_", percentile, ".png"), height = 4, width = 10, units = "in", res = 500)
     print(p)
     dev.off()
     
