@@ -64,7 +64,7 @@ map = function(mode){
         facet_wrap(~period, nrow = 2) +
         # coord_fixed() + 
         coord_sf(xlim = range(anom$x), ylim = range(anom$y)) +
-        # coord_map("ortho", orientation = c(0, median(anom$x), 0)) + #normal
+        coord_map("ortho", orientation = c(0, median(anom$x), 0)) + #normal
         # coord_map(projection = "mercator") +
         theme(axis.title = element_blank(),
               axis.ticks = element_blank(), 
