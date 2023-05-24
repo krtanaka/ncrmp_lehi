@@ -47,7 +47,7 @@ calculate_anomalies = function(data, region){
   
   percentile = 0.96667 #based on 30 years baseline (1955-1984)
   
-  # region = "NCRMP"
+  # region = "Guam"
   
   shp_i <- shp[shp$Territory1 %in% region,]
   
@@ -130,7 +130,7 @@ calculate_anomalies = function(data, region){
         baseline = baseline[,1]
         
         q = quantile(baseline, prob = percentile)
-        # hist(baseline, breaks = 60, col = matlab.like(60), lty = "blank")
+        # hist(baseline, breaks = 30, col = matlab.like(30), lty = "blank")
         # abline(v = q)
         
         present = target[ll, m]; present
