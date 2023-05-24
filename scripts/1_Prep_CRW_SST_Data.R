@@ -14,23 +14,32 @@ library(dplyr)
 library(readr)
 library(doParallel)
 
-cores = detectCores()-2
-registerDoParallel(cores = cores)
+# cores = detectCores()-2
+# registerDoParallel(cores = cores)
 
-nc_list = list.files(path = "/Users/kisei.tanaka/Desktop/SST_CRW_Monthly/Island_Level_Data/", pattern = "\\.nc$", full.names = T); nc_list
+nc_list = list.files(path = "G:/CRW_SST/", pattern = "\\.nc$", full.names = T); nc_list
 
-r <- foreach(isl = 1:length(nc_list), .combine = rbind, .packages = c("raster", "dplyr")) %dopar% {
-  
-  # isl = 1
-  
-  df = stack(nc_list[isl], varname = "sea_surface_temperature")
-  df <- df %>% rasterToPoints() %>% data.frame()
-  colnames(df)[3:dim(df)[2]] <- substring(colnames(df)[3:dim(df)[2]] , 1, 11)
-  df
-  
-}
+df = stack(nc_list, varname = "sea_surface_temperature")
+df <- df %>% rasterToPoints() %>% data.frame()
+df <- df %>% select(-matches("00\\.00\\.00\\.1"))
+df <- df %>% select(-matches("00\\.00\\.00\\.2"))
+colnames(df)[3:dim(df)[2]] <- substring(colnames(df)[3:dim(df)[2]] , 1, 11)
+df
+
+# r <- foreach(isl = 1:length(nc_list), .combine = rbind, .packages = c("raster", "dplyr")) %dopar% {
+#   
+#   # isl = 3
+#   
+#   df = stack(nc_list[isl], varname = "sea_surface_temperature")
+#   df <- df %>% rasterToPoints() %>% data.frame()
+#   colnames(df)[3:dim(df)[2]] <- substring(colnames(df)[3:dim(df)[2]] , 1, 11)
+#   df
+#   
+# }
 
 monthly_CRW = as.data.frame(r)
+monthly_CRW = df
+
 plot(monthly_CRW[,1:2])
 
-save(monthly_CRW, file = "data/CRW_1985-2021.RData")
+save(monthly_CRW, file = "G:/CRW_SST/CRW_1985-2022.RData")
