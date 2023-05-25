@@ -32,9 +32,6 @@ calculate_anomalies = function(period){
   if (period == "2005-2014") Target <- df[,c(1:2, 242:360)] #Jan 2005 - Dec 2014
   if (period == "2015-2021") Target <- df[,c(1:2, 361:444)] #Jan 2015 - Dec 2021
   
-  # Create an empty list to store the results
-  ll_anom <- list()
-  
   # Define the parallel backend
   cl <- makeCluster(detectCores()-2) # Adjust the number of cores as per your system
   
@@ -54,7 +51,7 @@ calculate_anomalies = function(period){
       
       # m = 8
       
-      interval = seq(m+2, dim(Baseline)[2], by = 12)
+      interval = seq(m + 2, dim(Baseline)[2], by = 12)
       
       baseline = Baseline[ll, c(interval)]
       baseline = t(baseline)
