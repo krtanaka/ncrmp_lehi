@@ -16,7 +16,7 @@ percentile = 0.96667 #based on 30 years baseline (1985-2014, one of CMIP6)
 
 calculate_anomalies = function(period){
   
-  # period = "2015-2021"
+  # period = "1985-1994"
   
   load("G:/CRW_SST/CRW_1985-2022.RData"); names(df)
 
