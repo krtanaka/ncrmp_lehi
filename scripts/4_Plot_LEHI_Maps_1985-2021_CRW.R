@@ -17,9 +17,9 @@ rm(list = ls())
 
 percentile = 0.96667 #based on 30 years baseline (1955-1984)
 
-period = c("1980-1989", "1990-1999", "2000-2009", "2010-2019")
+period = c("1985-1994", "1995_2004", "2005-2014", "2015-2021")
 
-data = c("HadI", "COBE")
+data = c("CRW")
 
 world <- fortify(getMap())
 
@@ -39,24 +39,46 @@ ipcc_col <- c(rgb(103, 0, 31, maxColorValue = 255, alpha = 255),
 
 map = function(mode){
   
-  load("outputs/CRW_0.96667_LEHI_1985-1994.RData"); crw1 = anom; crw1$source = "CRW v1.1"; crw1$period = "1985-1994"
-  load("outputs/CRW_0.96667_LEHI_1995-2004.RData"); crw2 = anom; crw2$source = "CRW v1.1"; crw2$period = "1995-2004"
-  load("outputs/CRW_0.96667_LEHI_2005-2014.RData"); crw3 = anom; crw3$source = "CRW v1.1"; crw3$period = "2005-2014"
-  load("outputs/CRW_0.96667_LEHI_2015-2021.RData"); crw4 = anom; crw4$source = "CRW v1.1"; crw4$period = "2015-2021"
+  load("G:/CRW_SST/CRW_0.96667_LEHI_1985-1994.RData"); crw1 = anom; crw1$source = "CRW v1.1"; crw1$period = "1985-1994"
+  load("G:/CRW_SST/CRW_0.96667_LEHI_1995-2004.RData"); crw2 = anom; crw2$source = "CRW v1.1"; crw2$period = "1995-2004"
+  load("G:/CRW_SST/CRW_0.96667_LEHI_2005-2014.RData"); crw3 = anom; crw3$source = "CRW v1.1"; crw3$period = "2005-2014"
+  load("G:/CRW_SST/CRW_0.96667_LEHI_2015-2021.RData"); crw4 = anom; crw4$source = "CRW v1.1"; crw4$period = "2015-2021"
   
   if (mode == "annual") {
     
     anom = rbind(crw1, crw2, crw3, crw4)
     
     anom %>% 
+      filter(period != "2015-2021") %>%
       group_by(period) %>% 
       summarise(mean = mean(sum)/120)
     
-    (p = anom %>% 
-        group_by(x, y, period) %>% 
-        summarise(sum = mean(sum)/120) %>% 
+    anom %>%
+      filter(period == "2015-2021") %>%
+      group_by(period) %>%
+      summarise(mean = mean(sum)/70)
+    
+    anom_i_a = anom %>% 
+      filter(period != "2015-2021") %>% 
+      mutate(x = round(x, 1),
+             y = round(y, 1)) %>% 
+      group_by(x, y, period) %>% 
+      summarise(sum = mean(sum)/120)
+    
+    anom_i_b = anom %>% 
+      filter(period == "2015-2021") %>% 
+      mutate(x = round(x, 1),
+             y = round(y, 1)) %>% 
+      group_by(x, y, period) %>% 
+      summarise(sum = mean(sum)/70)
+    
+    anom_i = rbind(anom_i_a, anom_i_b); rm(anom_i_a, anom_i_b)
+    
+    (p = anom_i %>% 
+        # filter(period != "2015-2021") %>% 
         ggplot() + 
-        geom_tile(aes(x, y, fill = sum), width = 1, height = 1) +
+        geom_raster(aes(x, y, fill = sum)) +
+        # geom_tile(aes(x, y, fill = sum), width = 1, height = 1) +
         annotation_map(map_data("world"), fill = "gray50", colour = "gray20") +
         scale_fill_gradientn(colors = rev(ipcc_col), "") +
         # scale_x_continuous(expand = c(-0.005, 15), "", limits = range(anom$x)) +
@@ -64,7 +86,7 @@ map = function(mode){
         facet_wrap(~period, nrow = 2) +
         # coord_fixed() + 
         coord_sf(xlim = range(anom$x), ylim = range(anom$y)) +
-        coord_map("ortho", orientation = c(0, median(anom$x), 0)) + #normal
+        # coord_map("ortho", orientation = c(0, median(anom$x), 0)) + #normal
         # coord_map(projection = "mercator") +
         theme(axis.title = element_blank(),
               axis.ticks = element_blank(), 
@@ -81,8 +103,6 @@ map = function(mode){
   if (mode == "seasonal_difference") {
     
     anom = rbind(crw1, crw2, crw3, crw4)
-    
-    anom$source = factor(anom$source, levels = c("HadISST v1.1", "COBE v2"))
     
     season_1 = anom[,c("x", "y", "jan", "feb", "mar", "source", "period")]; season_1$season = "Jan_Feb_Mar"
     season_2 = anom[,c("x", "y", "jul", "aug", "sep", "source", "period")]; season_2$season = "Jul_Aug_Sep"
