@@ -1,9 +1,8 @@
 library(raster)
 library(colorRamps)
-library(ggpubr)
 library(rnaturalearth)
 library(sf)
-library(rgdal)
+# library(rgdal)
 library(dplyr)
 library(maps)
 library(foreach)
@@ -12,13 +11,14 @@ library(pbapply)
 
 rm(list = ls())
 
-percentile = 0.96667 #based on 30 years baseline (1985-2014, one of CMIP6)
-
 calculate_anomalies = function(period){
   
   # period = "1985-1994"
   
-  load("G:/CRW_SST/CRW_1985-2022.RData"); names(df)
+  percentile = 0.96667 # based on 30 years baseline (1985-2014, one of CMIP6)
+  
+  # load("G:/CRW_SST/CRW_1985-2022.RData"); names(df)
+  load("/mnt/ldrive/ktanaka/CRW_SST/CRW_1985-2022.RData"); names(df)
 
   # set baseline Jan 1985 - Dec 2014, 30 years
   Baseline <-  df[,1:362]
