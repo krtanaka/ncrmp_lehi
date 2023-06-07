@@ -50,7 +50,7 @@ calculate_anomalies = function(region){
   
   shp_i <- shp[shp$Territory1 %in% region,]
   
-  load("data/CRW_1985-2021.RData")
+  load("/mnt/ldrive/ktanaka/CRW_SST/CRW_1985-2022.RData")
   
   # set baseline Jan 1985 - Dec 2014
   Baseline <- monthly_CRW[,1:360]
