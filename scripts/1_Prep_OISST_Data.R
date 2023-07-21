@@ -15,7 +15,7 @@ library(readr)
 
 for (p in 1:4) {
   
-  p = 1
+  # p = 1
   
   # too big to save so save them in blocks
   if (p == 1) period = c(1982:1991)
