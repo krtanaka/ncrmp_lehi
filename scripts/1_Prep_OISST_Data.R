@@ -13,53 +13,58 @@ library(rgdal)
 library(dplyr)
 library(readr)
 
-# too big to save so save them in blocks
-period = c(1982:1991)
-period = c(1992:2001)
-period = c(2002:2011)
-period = c(2012:2021)
-
-e = extent(143, 207, -16, 30) #just pacific NCRMP region
-
-monthly_OISST = NULL
-
-for (y in period) {
+for (p in 1:4) {
   
-  # y = 1992
-  df = stack(paste0("/Users/", Sys.info()[7], "/Desktop/sst.day.mean.", y, ".nc"), varname = "sst")
-  df = crop(df, e)
-  df <- df %>% rasterToPoints() %>% data.frame()
-  colnames(df)[3:367] <- substring(colnames(df)[3:367] , 2, 8)
-  month_vec = paste0(y, ".", sprintf("%02d", 1:12))
-  monthly_mean = NULL
+  p = 1
   
-  for (i in 1:length(month_vec)) {
+  # too big to save so save them in blocks
+  if (p == 1) period = c(1982:1991)
+  if (p == 2) period = c(1992:2001)
+  if (p == 3) period = c(2002:2011)
+  if (p == 4) period = c(2012:2022)
+  
+  e = extent(211.125, 214.875, 58.625, 62.375) # Prince William Sound
+  # e = extent(143, 207, -16, 30) # pacific NCRMP region
+  
+  monthly_OISST = NULL
+  
+  for (y in period) {
     
-    # i = 1
-    df_i = df[grepl(month_vec[i], names(df))]  
-    df_i$mean = rowMeans(df_i)
-    monthly_mean = cbind(monthly_mean, df_i$mean)
+    # y = 2012
+    # https://downloads.psl.noaa.gov/Datasets/noaa.oisst.v2.highres/
+    df = stack(paste0("G:/COBE_HadI_OISST/sst.day.mean.", y, ".nc"), varname = "sst")
+    df = crop(df, e)
+    df <- df %>% rasterToPoints() %>% data.frame()
+    colnames(df)[3:367] <- substring(colnames(df)[3:367] , 2, 8)
+    month_vec = paste0(y, ".", sprintf("%02d", 1:12))
+    monthly_mean = NULL
+    
+    for (i in 1:length(month_vec)) {
+      
+      # i = 1
+      df_i = df[grepl(month_vec[i], names(df))]  
+      df_i$mean = rowMeans(df_i)
+      monthly_mean = cbind(monthly_mean, df_i$mean)
+      
+    }
+    
+    monthly_mean = as.data.frame(monthly_mean)
+    colnames(monthly_mean) = paste0("X", y, ".", sprintf("%02d", 1:12))
+    
+    if (y %in% c(1982, 1992, 2002, 2012)) {
+      
+      df = cbind(df[,1:2], monthly_mean)
+      monthly_OISST = df
+      
+    } else {
+      
+      monthly_OISST = cbind(monthly_OISST, monthly_mean)
+    }
+    
+    print(y)
+    
+    save(monthly_OISST, file = paste0("data/OISST_", period[1], "-", period[length(period)], ".RData"))
     
   }
-  
-  monthly_mean = as.data.frame(monthly_mean)
-  colnames(monthly_mean) = paste0("X", y, ".", sprintf("%02d", 1:12))
-  
-  if (y %in% c(1982, 1992, 2002, 2012)) {
-    
-    df = cbind(df[,1:2], monthly_mean)
-    monthly_OISST = df
-    
-  } else {
-    
-    monthly_OISST = cbind(monthly_OISST, monthly_mean)
-  }
-  
-  print(y)
   
 }
-
-save(monthly_OISST, file = "data/OISST_1982-1991.RData")
-save(monthly_OISST, file = "data/OISST_1992-2001.RData")
-save(monthly_OISST, file = "data/OISST_2002-2011.RData")
-save(monthly_OISST, file = "data/OISST_2012-2021.RData")
