@@ -33,7 +33,7 @@ maps::map(add = T, fill = T)
 e = extent(143, 207, -16, 30) #just pacific NCRMP region
 
 #COBE
-df = stack(paste0("/Users/", Sys.info()[7], "/Desktop/COBE_sst.nc"), varname = "sst")
+df = stack("G:/COBE_HadI_OISST/COBE_sst.nc", varname = "sst")
 df = df[[1261:2040]] #trim to 1955-2019
 # df = raster::rotate(df) #rotate to -180:180
 df = crop(df, e); plot(df[[1]]);maps::map(add = T)
