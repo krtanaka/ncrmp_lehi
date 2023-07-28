@@ -1,7 +1,7 @@
-####################################################################################
-### before you begin... download OISSTv2 1982-2021 and save them on your desktop ###
-### https://psl.noaa.gov/data/gridded/data.noaa.oisst.v2.highres.html            ###
-####################################################################################
+########################################################################################
+### before you begin... download CRW SST 1982-2022 and save them on your drives      ###
+### https://coastwatch.pfeg.noaa.gov/erddap/info/NOAA_DHW_monthly_Lon0360/index.html ###
+########################################################################################
 
 rm(list = ls())
 
@@ -20,6 +20,7 @@ library(doParallel)
 nc_list = list.files(path = "G:/CRW_SST/", pattern = "\\.nc$", full.names = T); nc_list
 
 df = stack(nc_list, varname = "sea_surface_temperature")
+df = df[[1:459]]
 df <- df %>% rasterToPoints() %>% data.frame()
 df <- df %>% select(-matches("00\\.00\\.00\\.2"))
 colnames(df)[3:dim(df)[2]] <- substring(colnames(df)[3:dim(df)[2]] , 1, 8)
