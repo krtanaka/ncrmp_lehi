@@ -63,7 +63,7 @@ for (p in 1:4) {
     
     print(y)
     
-    save(monthly_OISST, file = paste0("data/OISST_", period[1], "-", period[length(period)], ".RData"))
+    save(monthly_OISST, file = paste0("G:/SST/OISST/OISST_", period[1], "-", period[length(period)], ".RData"))
     
   }
   
