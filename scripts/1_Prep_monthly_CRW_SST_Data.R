@@ -42,4 +42,4 @@ df = df[complete.cases(df), ]
 
 plot(unique(df[,1:2]), pch = ".")
 
-save(df, file = "G:/CRW_SST/CRW_1985-2022.RData")
+save(df, file = "G:/CRW_SST/CRW_SST.RData")

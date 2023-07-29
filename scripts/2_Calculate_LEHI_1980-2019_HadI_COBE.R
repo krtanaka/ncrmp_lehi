@@ -17,7 +17,7 @@ calculate_anomalies = function(period, data){
   # data = "COBE"
   # data = "HadI"
   
-  load(paste0('data/', data, "_SST.Rdata"))
+  load(paste0('G:/SST/', data, "_SST/", data, "_SST.Rdata"))
   
   # set baseline Jan 1955 - Dec 1984, 50 years CMIP6 ENSMN historical climate (1955-1984) https://psl.noaa.gov/ipcc/cmip6/ccwp6.html
   Baseline <-  df[[1:360]]
