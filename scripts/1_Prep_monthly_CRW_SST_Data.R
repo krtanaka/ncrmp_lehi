@@ -17,7 +17,7 @@ library(doParallel)
 # cores = detectCores()-2
 # registerDoParallel(cores = cores)
 
-nc_list = list.files(path = "G:/CRW_SST/", pattern = "\\.nc$", full.names = T); nc_list
+nc_list = list.files(path = "G:/SST/CRW_SST/", pattern = "\\.nc$", full.names = T); nc_list
 
 df = stack(nc_list, varname = "sea_surface_temperature")
 df = df[[1:459]]
