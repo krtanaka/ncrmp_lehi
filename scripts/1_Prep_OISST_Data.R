@@ -1,5 +1,5 @@
 ####################################################################################
-### before you begin... download OISSTv2 1982-2021 and save them on your desktop ###
+### before you begin... download OISSTv2 1982-2022 and save them on your desktop ###
 ### https://psl.noaa.gov/data/gridded/data.noaa.oisst.v2.highres.html            ###
 ####################################################################################
 
@@ -15,7 +15,7 @@ library(readr)
 
 for (p in 1:4) {
   
-  # p = 1
+  # p = 4
   
   # too big to save so save them in blocks
   if (p == 1) period = c(1982:1991)
@@ -23,16 +23,16 @@ for (p in 1:4) {
   if (p == 3) period = c(2002:2011)
   if (p == 4) period = c(2012:2022)
   
-  e = extent(211.125, 214.875, 58.625, 62.375) # Prince William Sound
-  # e = extent(143, 207, -16, 30) # pacific NCRMP region
+  # e = extent(211.125, 214.875, 58.625, 62.375) # Prince William Sound
+  e = extent(143, 207, -16, 30) # pacific NCRMP region
   
   monthly_OISST = NULL
   
   for (y in period) {
     
-    # y = 2012
-    # https://downloads.psl.noaa.gov/Datasets/noaa.oisst.v2.highres/
-    df = stack(paste0("G:/COBE_HadI_OISST/sst.day.mean.", y, ".nc"), varname = "sst")
+    # y = 2022
+
+    df = stack(paste0("G:/SST/OISST/sst.day.mean.", y, ".nc"), varname = "sst")
     df = crop(df, e)
     df <- df %>% rasterToPoints() %>% data.frame()
     colnames(df)[3:367] <- substring(colnames(df)[3:367] , 2, 8)
