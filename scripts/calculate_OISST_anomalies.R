@@ -26,7 +26,7 @@ Baseline <- df[[1:408]]
 Baseline <- Baseline %>% 
   rasterToPoints() %>%
   data.frame() %>%
-  subset(x > -160 & x < -140 & y > 50 & y < 62)
+  subset(x > -180 & x < -120 & y > 40 & y < 62)
 
 # set target period
 Target <- df[[1:408]] #Jan 1989 - Dec 2022
@@ -34,7 +34,7 @@ Target <- df[[1:408]] #Jan 1989 - Dec 2022
 Target <- Target %>% 
   rasterToPoints() %>%
   data.frame() %>%
-  subset(x > -160 & x < -140 & y > 50 & y < 62)
+  subset(x > -180 & x < -120 & y > 40 & y < 62)
 
 ll_anom = NULL
 
@@ -95,4 +95,5 @@ anom %>%
   ggplot(aes(x, y, fill = annual_mean)) +  
   geom_raster() + 
   scale_fill_gradientn(colors = matlab.like(100), "anomaly_trend") + 
-  annotation_map(map = map_data("world")) 
+  annotation_map(map = map_data("world")) + 
+  coord_fixed()
