@@ -9,7 +9,7 @@ library(raster)
 library(colorRamps)
 library(rnaturalearth)
 library(sf)
-library(rgdal)
+# library(rgdal)
 library(dplyr)
 library(readr)
 
