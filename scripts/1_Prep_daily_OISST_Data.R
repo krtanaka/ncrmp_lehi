@@ -1,5 +1,5 @@
 ####################################################################################
-### before you begin... download OISSTv2 1982-2022 and save them on your desktop ###
+### before you begin... download OISSTv2 1982-2023 and save them on your desktop ###
 ### https://psl.noaa.gov/data/gridded/data.noaa.oisst.v2.highres.html            ###
 ####################################################################################
 
@@ -21,7 +21,7 @@ for (p in 1:4) {
   if (p == 1) period = c(1982:1991)
   if (p == 2) period = c(1992:2001)
   if (p == 3) period = c(2002:2011)
-  if (p == 4) period = c(2012:2022)
+  if (p == 4) period = c(2012:2023)
   
   # e = extent(211.125, 214.875, 58.625, 62.375) # Prince William Sound
   e = extent(143, 207, -16, 30) # pacific NCRMP region
@@ -72,7 +72,7 @@ for (p in 1:4) {
 load("G:/SST/OISST/OISST_1982-1991.RData"); s1 = monthly_OISST
 load("G:/SST/OISST/OISST_1992-2001.RData"); s2 = monthly_OISST
 load("G:/SST/OISST/OISST_2002-2011.RData"); s3 = monthly_OISST
-load("G:/SST/OISST/OISST_2012-2022.RData"); s4 = monthly_OISST
+load("G:/SST/OISST/OISST_2012-2023.RData"); s4 = monthly_OISST
 
 s = left_join(s1, s2)
 s = left_join(s, s3)
