@@ -47,29 +47,33 @@ df1 <- foreach(i = 1:430, .combine = cbind, .packages = c("terra", "dplyr", "ras
   df_i = crop(df_i, e)
   df_i <- df_i %>% terra::as.data.frame(xy = T)
   df_i <- df_i %>% dplyr::select(-matches("00\\.00\\.00\\.2"))
-  colnames(df_i)[3:dim(df_i)[2]] <- paste0("X", substring(nc_list_cw[i], 54, 59))
+  colnames(df_i)[3] <- paste0("X", substring(nc_list_cw[i], 54, 59))
   
   if (i != 1) {
   df_i = left_join(base_latlon, df_i)
+  df_i = df_i[,3] %>% as.data.frame()
+  colnames(df_i)[1] <- paste0("X", substring(nc_list_cw[i], 54, 59))
   }
   
   df_i
   
 }
 
-df1 <- foreach(i = 431:466, .combine = cbind, .packages = c("terra", "dplyr", "raster")) %dopar% {
+df2 <- foreach(i = 431:466, .combine = cbind, .packages = c("terra", "dplyr", "raster")) %dopar% {
   
-  # i = 1
+  # i = 431
   
   df_i = rast(nc_list_cw[i], subds = "sea_surface_temperature")
   df_i <- rotate(df_i, left = FALSE) 
   df_i = crop(df_i, e)
   df_i <- df_i %>% terra::as.data.frame(xy = T)
   df_i <- df_i %>% dplyr::select(-matches("00\\.00\\.00\\.2"))
-  colnames(df_i)[3:dim(df_i)[2]] <- paste0("X", substring(nc_list_cw[i], 54, 59))
+  colnames(df_i)[3] <- paste0("X", substring(nc_list_cw[i], 54, 59))
   
-  if (i != 1) {
+  if (i != 431) {
     df_i = left_join(base_latlon, df_i)
+    df_i = df_i[,3] %>% as.data.frame()
+    colnames(df_i)[1] <- paste0("X", substring(nc_list_cw[i], 54, 59))
   }
   
   df_i
@@ -79,16 +83,7 @@ df1 <- foreach(i = 431:466, .combine = cbind, .packages = c("terra", "dplyr", "r
 # Stop parallel processing
 stopCluster(cl)
 
-# r <- foreach(isl = 1:length(nc_list), .combine = rbind, .packages = c("raster", "dplyr")) %dopar% {
-#   
-#   # isl = 3
-#   
-#   df = stack(nc_list[isl], varname = "sea_surface_temperature")
-#   df <- df %>% rasterToPoints() %>% data.frame()
-#   colnames(df)[3:dim(df)[2]] <- substring(colnames(df)[3:dim(df)[2]] , 1, 11)
-#   df
-#   
-# }
+
 
 # monthly_CRW = as.data.frame(r)
 df = df[complete.cases(df), ]
