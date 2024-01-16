@@ -6,6 +6,7 @@
 rm(list = ls())
 
 library(raster)
+library(terra)
 library(colorRamps)
 library(rnaturalearth)
 library(sf)
@@ -35,7 +36,7 @@ base_latlon = rast(nc_list_cw[1], subds = "sea_surface_temperature") %>%
   rotate(left = FALSE) %>% 
   crop(e) %>% 
   terra::as.data.frame(xy = T) %>% 
-  select(x, y)
+  dplyr::select(x, y)
 
 # stacked separately because of changes in crs half way
 df1 <- foreach(i = 1:430, .combine = cbind, .packages = c("terra", "dplyr", "raster")) %dopar% {
@@ -83,11 +84,11 @@ df2 <- foreach(i = 431:466, .combine = cbind, .packages = c("terra", "dplyr", "r
 # Stop parallel processing
 stopCluster(cl)
 
-
+df = merge(df1, df2)
 
 # monthly_CRW = as.data.frame(r)
 df = df[complete.cases(df), ]
 
 plot(unique(df[,1:2]), pch = ".")
 
-save(df, file = "G:/CRW_SST/CRW_SST.RData")
+save(df, file = "G:/SST/CRW_SST/CRW_SST.RData")
