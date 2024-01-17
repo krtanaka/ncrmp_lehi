@@ -13,7 +13,7 @@ rm(list = ls())
 
 calculate_anomalies = function(period){
   
-  # period = "2015-2022"
+  # period = "2015-2023"
   
   percentile = 0.96667 # based on 30 years baseline (1985-2014, one of CMIP6)
   
@@ -28,7 +28,7 @@ calculate_anomalies = function(period){
   if (period == "1985-1994") Target <- df[, 1:122] #Jan 1985 - Dec 1994
   if (period == "1995-2004") Target <- df[,c(1:2, 123:242)] #Jan 1995 - Dec 2004
   if (period == "2005-2014") Target <- df[,c(1:2, 243:362)] #Jan 2005 - Dec 2014
-  if (period == "2015-2022") Target <- df[,c(1:2, 363:458)] #Jan 2015 - Dec 2022
+  if (period == "2015-2023") Target <- df[,c(1:2, 363:468)] #Jan 2015 - Dec 2023
   
   # Define the parallel backend
   cl <- makeCluster(detectCores()-2)
@@ -97,4 +97,4 @@ calculate_anomalies = function(period){
 calculate_anomalies("1985-1994")
 calculate_anomalies("1995-2004")
 calculate_anomalies("2005-2014")
-calculate_anomalies("2015-2022")
+calculate_anomalies("2015-2023")
