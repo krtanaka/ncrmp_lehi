@@ -38,8 +38,7 @@ base_latlon = rast(nc_list_cw[1], subds = "sea_surface_temperature") %>%
   terra::as.data.frame(xy = T) %>% 
   dplyr::select(x, y)
 
-# stacked separately because of changes in crs half way
-df1 <- foreach(i = 1:430, .combine = cbind, .packages = c("terra", "dplyr", "raster")) %dopar% {
+df <- foreach(i = 1:468, .combine = cbind, .packages = c("terra", "dplyr", "raster")) %dopar% {
   
   # i = 1
   
@@ -60,33 +59,9 @@ df1 <- foreach(i = 1:430, .combine = cbind, .packages = c("terra", "dplyr", "ras
   
 }
 
-df2 <- foreach(i = 431:466, .combine = cbind, .packages = c("terra", "dplyr", "raster")) %dopar% {
-  
-  # i = 431
-  
-  df_i = rast(nc_list_cw[i], subds = "sea_surface_temperature")
-  df_i <- rotate(df_i, left = FALSE) 
-  df_i = crop(df_i, e)
-  df_i <- df_i %>% terra::as.data.frame(xy = T)
-  df_i <- df_i %>% dplyr::select(-matches("00\\.00\\.00\\.2"))
-  colnames(df_i)[3] <- paste0("X", substring(nc_list_cw[i], 54, 59))
-  
-  if (i != 431) {
-    df_i = left_join(base_latlon, df_i)
-    df_i = df_i[,3] %>% as.data.frame()
-    colnames(df_i)[1] <- paste0("X", substring(nc_list_cw[i], 54, 59))
-  }
-  
-  df_i
-  
-}
-
 # Stop parallel processing
 stopCluster(cl)
 
-df = merge(df1, df2)
-
-# monthly_CRW = as.data.frame(r)
 df = df[complete.cases(df), ]
 
 plot(unique(df[,1:2]), pch = ".")
