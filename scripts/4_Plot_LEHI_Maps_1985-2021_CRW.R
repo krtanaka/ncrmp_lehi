@@ -39,34 +39,34 @@ ipcc_col <- c(rgb(103, 0, 31, maxColorValue = 255, alpha = 255),
 
 map = function(mode){
   
-  load("G:/SST/CRW_SST/CRW_0.96667_LEHI_1985-1994.RData"); crw1 = anom; crw1$source = "CRW v1.1"; crw1$period = "1985-1994"
-  load("G:/SST/CRW_SST/CRW_0.96667_LEHI_1995-2004.RData"); crw2 = anom; crw2$source = "CRW v1.1"; crw2$period = "1995-2004"
-  load("G:/SST/CRW_SST/CRW_0.96667_LEHI_2005-2014.RData"); crw3 = anom; crw3$source = "CRW v1.1"; crw3$period = "2005-2014"
-  load("G:/SST/CRW_SST/CRW_0.96667_LEHI_2015-2021.RData"); crw4 = anom; crw4$source = "CRW v1.1"; crw4$period = "2015-2022"
+  load("outputs/CRW_0.96667_LEHI_1985-1994.RData"); crw1 = anom; crw1$source = "CRW v1.1"; crw1$period = "1985-1994"
+  load("outputs/CRW_0.96667_LEHI_1995-2004.RData"); crw2 = anom; crw2$source = "CRW v1.1"; crw2$period = "1995-2004"
+  load("outputs/CRW_0.96667_LEHI_2005-2014.RData"); crw3 = anom; crw3$source = "CRW v1.1"; crw3$period = "2005-2014"
+  load("outputs/CRW_0.96667_LEHI_2015-2023.RData"); crw4 = anom; crw4$source = "CRW v1.1"; crw4$period = "2015-2023"
   
   if (mode == "annual") {
     
     anom = rbind(crw1, crw2, crw3, crw4)
     
     anom %>% 
-      filter(period != "2015-2022") %>%
+      filter(period != "2015-2023") %>%
       group_by(period) %>% 
       summarise(mean = mean(sum)/120)
     
     anom %>%
-      filter(period == "2015-2021") %>%
+      filter(period == "2015-2023") %>%
       group_by(period) %>%
       summarise(mean = mean(sum)/70)
     
     anom_i_a = anom %>% 
-      filter(period != "2015-2021") %>% 
+      filter(period != "2015-2023") %>% 
       mutate(x = round(x, 1),
              y = round(y, 1)) %>% 
       group_by(x, y, period) %>% 
       summarise(sum = mean(sum)/120)
     
     anom_i_b = anom %>% 
-      filter(period == "2015-2021") %>% 
+      filter(period == "2015-2023") %>% 
       mutate(x = round(x, 1),
              y = round(y, 1)) %>% 
       group_by(x, y, period) %>% 
