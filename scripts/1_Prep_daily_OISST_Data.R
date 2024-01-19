@@ -74,10 +74,6 @@ load("G:/SST/OISST/OISST_1992-2001.RData"); s2 = monthly_OISST
 load("G:/SST/OISST/OISST_2002-2011.RData"); s3 = monthly_OISST
 load("G:/SST/OISST/OISST_2012-2023.RData"); s4 = monthly_OISST
 
-s = left_join(s1, s2)
-s = left_join(s, s3)
-s = left_join(s, s4)
-
-monthly_OISST = s
+monthly_OISST = left_join(left_join(left_join(s1, s2), s3), s4)
 
 save(monthly_OISST, file = "G:/SST/OISST/OISST.RData")
