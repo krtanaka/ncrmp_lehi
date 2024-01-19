@@ -119,7 +119,8 @@ map = function(mode){
     
     (p = seasonal_differnece %>% 
         ggplot() +
-        geom_raster(aes(x, y, fill = diff)) + 
+        geom_raster(aes(x, y, fill = diff)) +
+        # geom_tile(aes(x, y, fill = diff), width = 0.5, height = 0.5) + 
         annotation_map(map_data("world"), fill = "gray50", colour = "gray20", size = 0.5) +
         scale_fill_gradientn(colors = rev(ipcc_col), "", limits = c( max(abs(seasonal_differnece$diff))*-1,
                                                                      max(abs(seasonal_differnece$diff)))) +
@@ -129,8 +130,9 @@ map = function(mode){
         theme(axis.title = element_blank(),
               axis.text = element_blank(),
               axis.ticks = element_blank(),
+              legend.text = element_text(size = 6),
               legend.position = "bottom",
-              legend.justification = c(1,0)))
+              legend.justification = c(1, 0)))
     
     png(paste0("outputs/CWR_annual_map_v3_", percentile, ".png"), height = 6, width = 6, units = "in", res = 500)
     print(p)
