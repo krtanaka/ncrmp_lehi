@@ -119,7 +119,7 @@ map = function(mode){
     
     (p = seasonal_differnece %>% 
         ggplot() +
-        geom_tile(aes(x, y, fill = diff), width = 0.5, height = 0.5) + 
+        geom_raster(aes(x, y, fill = diff)) + 
         annotation_map(map_data("world"), fill = "gray50", colour = "gray20", size = 0.5) +
         scale_fill_gradientn(colors = rev(ipcc_col), "", limits = c( max(abs(seasonal_differnece$diff))*-1,
                                                                      max(abs(seasonal_differnece$diff)))) +
