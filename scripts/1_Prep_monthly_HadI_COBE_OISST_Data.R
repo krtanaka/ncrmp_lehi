@@ -8,19 +8,6 @@ library(ggplot2)
 
 rm(list = ls())
 
-load("data/BenthicREA_sitedata_TAXONCODE.RData")
-
-df$LONGITUDE = ifelse(df$LONGITUDE < 0, df$LONGITUDE + 360, df$LONGITUDE)
-
-df = df %>% 
-  group_by(LONGITUDE, LATITUDE) %>% 
-  summarise(n = n())
-
-summary(df)
-
-plot(df$LONGITUDE, df$LATITUDE, pch = ".", bty = "n", col = "red")
-maps::map(add = T, fill = T)
-
 # OSF for Tanaka and Van Houtan 2022
 # https://osf.io/mj8u7/
 
@@ -30,7 +17,10 @@ maps::map(add = T, fill = T)
 # COBE SST2
 # https://psl.noaa.gov/data/gridded/data.cobe.html
 
-e = extent(143, 207, -16, 30) #just pacific NCRMP region
+# OISST v2
+# https://downloads.psl.noaa.gov/Datasets/noaa.oisst.v2/
+
+e = extent(143, 207, -16, 30) # just pacific NCRMP region
 
 #COBE
 df = stack("G:/SST/COBE_SST/sst.mon.mean.nc", varname = "sst")
