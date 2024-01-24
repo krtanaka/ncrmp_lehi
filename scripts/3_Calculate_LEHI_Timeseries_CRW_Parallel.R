@@ -7,7 +7,7 @@ library(rnaturalearth)
 library(sp)
 library(maptools)
 library(sf)
-library(rgdal)
+library(sf)
 library(dplyr)
 library(maps)
 library(doParallel)
@@ -17,12 +17,13 @@ registerDoParallel(cores = cores)
 
 # https://www.marineregions.org/downloads.php
 # shp <- readOGR("G:/GIS/nm/World_12NM_v3_20191118_0_360/eez_12nm_v3_0_360.shp") # World 12 Nautical Miles Zone (Territorial Seas) v2 0-360
-shp <- readOGR("G:/GIS/eez/World_EEZ_v10_20180221_HR_0_360/World_EEZ_v10_2018_0_360.shp") #World EEZ v10 0-360
-shp <- readOGR("/mnt/ldrive/ktanaka/GIS/eez/World_EEZ_v10_20180221_HR_0_360/World_EEZ_v10_2018_0_360.shp") #World EEZ v10 0-360
+shp <- st_read(file.path("G:/GIS/eez/World_EEZ_v10_20180221_HR_0_360/World_EEZ_v10_2018_0_360.shp")) %>% as("Spatial") #World EEZ v10 0-360
+shp <- st_read(file.path("/mnt/ldrive/ktanaka/GIS/eez/World_EEZ_v10_20180221_HR_0_360/World_EEZ_v10_2018_0_360.shp")) %>% as("Spatial") #World EEZ v10 0-360
 
 shp <- shp[shp$Pol_type != "Overlapping claim",]
 shp <- shp[shp$Sovereign1 == "United States",]
 # shp = recenter(shp)
+
 CRS.new <- CRS("+proj=longlat +datum=WGS84 +no_defs")
 proj4string(shp) <- CRS.new # proj4string(latlon) <- CRS.new
 
@@ -51,11 +52,12 @@ calculate_anomalies = function(region){
   shp_i <- shp[shp$Territory1 %in% region,]
   
   load("/mnt/ldrive/ktanaka/CRW_SST/CRW_1985-2022.RData")
+  load("G:/SST/CRW_SST/CRW_SST.RData"); monthly_CRW = df
   
   # set baseline Jan 1985 - Dec 2014
-  Baseline <- monthly_CRW[,1:360]
+  Baseline <- monthly_CRW[,1:362]
   names(Baseline)
-  plot(Baseline[,1:2], pch = 20)
+  plot(Baseline[,1:2], pch = ".")
   
   if (region != "NCRMP") {
     
