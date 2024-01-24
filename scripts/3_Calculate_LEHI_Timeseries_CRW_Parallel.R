@@ -51,8 +51,8 @@ calculate_anomalies = function(region){
   
   shp_i <- shp[shp$Territory1 %in% region,]
   
-  load("/mnt/ldrive/ktanaka/CRW_SST/CRW_1985-2022.RData")
-  load("G:/SST/CRW_SST/CRW_SST.RData"); monthly_CRW = df
+  load("/mnt/ldrive/ktanaka/CRW_SST/CRW_SST.RData"); monthly_CRW = df
+  # load("G:/SST/CRW_SST/CRW_SST.RData"); monthly_CRW = df
   
   # set baseline Jan 1985 - Dec 2014
   Baseline <- monthly_CRW[,1:362]
@@ -73,8 +73,8 @@ calculate_anomalies = function(region){
     
   }
   
-  Target <- monthly_CRW[,1:446] #Jan 1985 - Dec 2021
-  plot(Target[,1:2], pch = 20)
+  Target <- monthly_CRW[,1:469] #Jan 1985 - Dec 2023
+  plot(Target[,1:2], pch = ".")
   
   if (region != "NCRMP") {
     
@@ -86,13 +86,13 @@ calculate_anomalies = function(region){
     colnames(area)[1] = "Territory"
     Target = cbind(area, Target) %>% na.omit()
     Target = Target[ , !(names(Target) %in% "Territory")]
-    plot(Target[,1:2], pch = 20)
+    plot(Target[,1:2], pch = ".")
     
   }
   
   yy_anom = NULL
   
-  for (y in 1:37) { #every year between 1985-2021
+  for (y in 1:39) { #every year between 1985-2021
     
     # y = 1
     
@@ -164,7 +164,8 @@ calculate_anomalies = function(region){
   axis(2, las = 2, at = seq(0, 1, 0.1))
   abline(h = 0.5, lty = 2)
   
-  save(yy_anom, file = paste0("outputs/CRW_timeseries_", percentile, "_", region, ".RData"))
+  # save(yy_anom, file = paste0("outputs/CRW_timeseries_", percentile, "_", region, ".RData"))
+  save(yy_anom, file = paste0("/mnt/ldrive/ktanaka/CRW_SST/CRW_timeseries_", percentile, "_", region, ".RData"))
   
 }
 
