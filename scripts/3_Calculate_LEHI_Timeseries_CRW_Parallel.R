@@ -47,7 +47,7 @@ calculate_anomalies = function(region){
   
   percentile = 0.96667 #based on 30 years baseline (1955-1984)
   
-  # region = "Guam"
+  # region = "Palmyra Atoll"
   
   shp_i <- shp[shp$Territory1 %in% region,]
   
@@ -57,7 +57,7 @@ calculate_anomalies = function(region){
   # set baseline Jan 1985 - Dec 2014
   Baseline <- monthly_CRW[,1:362]
   names(Baseline)
-  plot(Baseline[,1:2], pch = ".")
+  # plot(Baseline[,1:2], pch = ".")
   
   if (region != "NCRMP") {
     
@@ -69,12 +69,12 @@ calculate_anomalies = function(region){
     colnames(area)[1] = "Territory"
     Baseline = cbind(area, Baseline) %>% na.omit()
     Baseline = Baseline[ , !(names(Baseline) %in% "Territory")]
-    plot(Baseline[,1:2], pch = 20)
+    # plot(Baseline[,1:2], pch = ".")
     
   }
   
-  Target <- monthly_CRW[,1:469] #Jan 1985 - Dec 2023
-  plot(Target[,1:2], pch = ".")
+  Target <- monthly_CRW[,1:470] #Jan 1985 - Dec 2023
+  # plot(Target[,1:2], pch = ".")
   
   if (region != "NCRMP") {
     
@@ -86,13 +86,13 @@ calculate_anomalies = function(region){
     colnames(area)[1] = "Territory"
     Target = cbind(area, Target) %>% na.omit()
     Target = Target[ , !(names(Target) %in% "Territory")]
-    plot(Target[,1:2], pch = ".")
+    # plot(Target[,1:2], pch = ".")
     
   }
   
   yy_anom = NULL
   
-  for (y in 1:39) { #every year between 1985-2021
+  for (y in 1:39) { #every year between 1985-2023
     
     # y = 1
     
