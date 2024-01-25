@@ -78,7 +78,7 @@ calculate_anomalies = function(region){
   
   if (region != "NCRMP") {
     
-    latlon = Target[,c(1:2)]; plot(latlon, pch = ".")
+    latlon = Target[,c(1:2)]
     coordinates(latlon) = ~x+y
     proj4string(latlon) <- CRS.new
     area <- over(latlon, shp_i)
