@@ -67,3 +67,26 @@ df = df[complete.cases(df), ]
 plot(unique(df[,1:2]), pch = ".")
 
 save(df, file = "G:/SST/CRW_SST/CRW_SST.RData")
+
+load("G:/SST/CRW_SST/CRW_SST.RData")
+
+shp <- st_read(file.path("L:/ktanaka/GIS/5km_buffer/ALLPacific_Sectors_Islands_5km_buffer.shp")) %>% as("Spatial") #World EEZ v10 0-360
+# shp = recenter(shp)
+
+CRS.new <- CRS("+proj=longlat +datum=WGS84 +no_defs")
+proj4string(shp) <- CRS.new # proj4string(latlon) <- CRS.new
+
+df$x = ifelse(df$x > 180, df$x - 360, df$x)
+
+latlon = df[,c(1:2)]
+coordinates(latlon) = ~x+y
+proj4string(latlon) <- CRS.new
+area <- over(latlon, shp)
+area = as.data.frame(area[,"Region"])
+colnames(area)[1] = "Region"
+df = cbind(area, df) %>% na.omit()
+df = df[ , -which(names(df) %in% "Region")]
+
+df$x = ifelse(df$x < 0, df$x + 360, df$x)
+
+save(df, file = "G:/SST/CRW_SST/CRW_SST_5km_coast.RData")

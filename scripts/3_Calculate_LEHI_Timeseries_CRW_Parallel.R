@@ -51,8 +51,9 @@ calculate_anomalies = function(region){
   
   shp_i <- shp[shp$Territory1 %in% region,]
   
-  load("/mnt/ldrive/ktanaka/CRW_SST/CRW_SST.RData"); monthly_CRW = df
+  # load("/mnt/ldrive/ktanaka/CRW_SST/CRW_SST.RData"); monthly_CRW = df
   # load("G:/SST/CRW_SST/CRW_SST.RData"); monthly_CRW = df
+  load("G:/SST/CRW_SST/CRW_SST_5km_coast.RData"); monthly_CRW = df
   
   # set baseline Jan 1985 - Dec 2014
   Baseline <- monthly_CRW[,1:362]
@@ -165,7 +166,8 @@ calculate_anomalies = function(region){
   abline(h = 0.5, lty = 2)
   
   # save(yy_anom, file = paste0("outputs/CRW_timeseries_", percentile, "_", region, ".RData"))
-  save(yy_anom, file = paste0("/mnt/ldrive/ktanaka/CRW_SST/CRW_timeseries_", percentile, "_", region, ".RData"))
+  save(yy_anom, file = paste0("outputs/CRW_timeseries_", percentile, "_", region, "_5km.RData"))
+  # save(yy_anom, file = paste0("/mnt/ldrive/ktanaka/CRW_SST/CRW_timeseries_", percentile, "_", region, ".RData"))
   
 }
 
