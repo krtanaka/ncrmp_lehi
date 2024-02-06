@@ -86,7 +86,7 @@ exceeded_times  %>%
   labs(x = "", y = "") +
   theme_light() +
   geom_hline(yintercept = seq(0.5, 8), color = 'white', size = 2) + 
-  # scale_x_continuous(breaks = seq(1984, 2023, 10), limits = c(1984, 2023)) +
+  scale_x_continuous(breaks = seq(1984, 2023, 10), limits = c(1984, 2023)) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 all_year = data.frame(Year = seq(1985, 2023, by = 1))
@@ -132,7 +132,6 @@ ElNino = c(1897, 1900,
            1992, 1995, 1998,
            2003, 2007, 2010,
            2016)
-
 
 df$ElNino = "N"
 df$ElNino = ifelse(df$Year %in% ElNino, "Y", df$ElNino)
