@@ -47,14 +47,15 @@ calculate_anomalies = function(data, region){
   
   percentile = 0.96667 #based on 30 years baseline (1955-1984)
   
-  # region = "Guam"
+  # region = "NCRMP"
   
   shp_i <- shp[shp$Territory1 %in% region,]
   
   # data = c("HadI", "COBE")[2]
   
-  load(paste0('data/', data, "_SST.RData"))
-
+  # load(paste0('data/', data, "_SST.RData"))
+  load(paste0('/mnt/ldrive/ktanaka/', data, "_SST.RData"))
+  
   # set baseline Jan 1955 - Dec 1984, 50 years CMIP6 ENSMN historical climate (1955-1984) https://psl.noaa.gov/ipcc/cmip6/ccwp6.html
   Baseline <- df[[1:360]]
   values(Baseline)[values(Baseline) == -1000] = -1.8
@@ -76,7 +77,7 @@ calculate_anomalies = function(data, region){
     
   }
   
-  Target <- df[[1:780]] #Jan 1955 - Dec 2019
+  Target <- df[[1:816]] #Jan 1955 - Dec 2022
   values(Target)[values(Target) == -1000] = -1.8 
   names(Baseline)
   Target <- Target %>% rasterToPoints() %>% data.frame()
@@ -98,7 +99,7 @@ calculate_anomalies = function(data, region){
   
   yy_anom = NULL
   
-  for (y in 1:65) { #every year between 1955-2019
+  for (y in 1:68) { #every year between 1955-2022
     
     # y = 1
     
@@ -170,7 +171,9 @@ calculate_anomalies = function(data, region){
   axis(2, las = 2, at = seq(0, 1, 0.1))
   abline(h = 0.5, lty = 2)
   
-  save(yy_anom, file = paste0("outputs/", data, "_timeseries_", percentile, "_", region, ".RData"))
+  # save(yy_anom, file = paste0("outputs/", data, "_timeseries_", percentile, "_", region, ".RData"))
+  save(yy_anom, file = paste0("/mnt/ldrive/ktanaka/", data, "_timeseries_", percentile, "_", region, ".RData"))
+  
   
 }
 

@@ -28,7 +28,7 @@ percentile = 0.96667 #based on 30 years baseline (1955-1984)
 
 calculate_anomalies = function(period, region){
   
-  # period = "2012-2021"
+  # period = "2012-2023"
   # region = "MHI"
   
   region_box_i = region_box %>% subset(REGION == region)
@@ -36,8 +36,8 @@ calculate_anomalies = function(period, region){
   load('data/OISST_1982-1991.RData'); df1 = monthly_OISST; names(df1)
   load('data/OISST_1992-2001.RData'); df2 = monthly_OISST; names(df2)
   load('data/OISST_2002-2011.RData'); df3 = monthly_OISST; names(df3)
-  load('data/OISST_2012-2021.RData'); df4 = monthly_OISST; names(df4)
-  monthly_OISST = cbind(df1, df2[,3:122], df3[,3:122], df4[,3:122]); names(monthly_OISST)
+  load('data/OISST_2012-2023.RData'); df4 = monthly_OISST; names(df4)
+  monthly_OISST = cbind(df1, df2[,3:122], df3[,3:122], df4[,3:146]); names(monthly_OISST)
   rm(df1, df2, df3, df4)
   
   df = monthly_OISST %>% subset(x >= region_box_i$min_lon & 
@@ -53,7 +53,7 @@ calculate_anomalies = function(period, region){
   if (period == "1982-1991") Target <- df[,1:122] #Jan 1982 - Dec 1991
   if (period == "1992-2001") Target <- df[,c(1:2, 123:242)] #Jan 1992 - Dec 2001
   if (period == "2002-2011") Target <- df[,c(1:2, 243:362)] #Jan 2002 - Dec 2011
-  if (period == "2012-2021") Target <- df[,c(1:2, 363:482)] #Jan 2012 - Dec 2021
+  if (period == "2012-2023") Target <- df[,c(1:2, 363:506)] #Jan 2012 - Dec 2023
   
   ll_anom = NULL
   
@@ -113,24 +113,24 @@ calculate_anomalies = function(period, region){
 calculate_anomalies("1982-1991", "MHI")
 calculate_anomalies("1992-2001", "MHI")
 calculate_anomalies("2002-2011", "MHI")
-calculate_anomalies("2012-2021", "MHI")
+calculate_anomalies("2012-2023", "MHI")
 
 calculate_anomalies("1982-1991", "NWHI")
 calculate_anomalies("1992-2001", "NWHI")
 calculate_anomalies("2002-2011", "NWHI")
-calculate_anomalies("2012-2021", "NWHI")
+calculate_anomalies("2012-2023", "NWHI")
 
 calculate_anomalies("1982-1991", "PRIAs")
 calculate_anomalies("1992-2001", "PRIAs")
 calculate_anomalies("2002-2011", "PRIAs")
-calculate_anomalies("2012-2021", "PRIAs")
+calculate_anomalies("2012-2023", "PRIAs")
 
 calculate_anomalies("1982-1991", "SAMOA")
 calculate_anomalies("1992-2001", "SAMOA")
 calculate_anomalies("2002-2011", "SAMOA")
-calculate_anomalies("2012-2021", "SAMOA")
+calculate_anomalies("2012-2023", "SAMOA")
 
 calculate_anomalies("1982-1991", "MARIAN")
 calculate_anomalies("1992-2001", "MARIAN")
 calculate_anomalies("2002-2011", "MARIAN")
-calculate_anomalies("2012-2021", "MARIAN")
+calculate_anomalies("2012-2023", "MARIAN")
