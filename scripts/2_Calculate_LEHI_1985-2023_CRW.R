@@ -17,7 +17,8 @@ calculate_anomalies = function(period){
   
   percentile = 0.96667 # based on 30 years baseline (1985-2014, one of CMIP6)
   
-  load("G:/SST/CRW_SST/CRW_SST.RData"); names(df)
+  # load("G:/SST/CRW_SST/CRW_SST.RData"); names(df)
+  load("G:/SST/CRW_SST/CRW_SST_5km_coast.RData"); names(df)
   # load("/mnt/ldrive/ktanaka/CRW_SST/CRW_SST.RData"); names(df)
 
   # set baseline Jan 1985 - Dec 2014, 30 years

@@ -151,7 +151,7 @@ df$ElNino = ifelse(df$Year %in% ElNino, "Y", df$ElNino)
           legend.justification = c(-0.3,0.8)) + 
     labs(x = "", y = "Area fraction"))
 
-png("outputs/LEHI_Timeseries_v1.png", height = 8, width = 12, units = "in", res = 500)
+png("outputs/LEHI_Timeseries_v1_HadI_COBE_EEZs.png", height = 8, width = 12, units = "in", res = 500)
 print(p)
 dev.off()
 
@@ -189,12 +189,12 @@ df$region = factor(df$region, levels = c("Pacific NCRMP",
     geom_hline(yintercept = 0.5, linetype = "dashed") + 
     theme_cowplot() + 
     facet_wrap(~region, nrow = 2) + 
-    scale_x_continuous(breaks = seq(1950, 2020, 10), limits = c(1955, 2019)) + 
+    scale_x_continuous(breaks = seq(1950, 2020, 10), limits = c(1955, 2023)) + 
     scale_y_continuous(breaks = c(seq(0, 1, by = 0.2)), limits = c(0, max(df$year_sum))) +
     labs(x = "", y = "Area fraction") + 
     theme(legend.position = "none",
           axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)))
 
-png("outputs/LEHI_Timeseries_v2.png", height = 8, width = 12, units = "in", res = 500)
+png("outputs/LEHI_Timeseries_v2_HadI_COBE_EEZs.png", height = 8, width = 12, units = "in", res = 500)
 print(p)
 dev.off()

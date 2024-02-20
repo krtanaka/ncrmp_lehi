@@ -18,7 +18,7 @@ rm(list = ls())
 
 percentile = 0.96667 #based on 30 years baseline (1955-1984)
 
-period = c("1980-1989", "1990-1999", "2000-2009", "2010-2019")
+period = c("1980-1989", "1990-1999", "2000-2009", "2010-2023")
 
 world <- fortify(getMap())
 
@@ -43,7 +43,7 @@ map = function(mode){
   load(paste0("outputs/OISST_0.96667_", region, "_LEHI_1982-1991.RData")); oisst1 = anom; oisst1$source = "oisst"; oisst1$period = "1980-1989"
   load(paste0("outputs/OISST_0.96667_", region, "_LEHI_1992-2001.RData")); oisst2 = anom; oisst2$source = "oisst"; oisst2$period = "1990-1999"
   load(paste0("outputs/OISST_0.96667_", region, "_LEHI_2002-2011.RData")); oisst3 = anom; oisst3$source = "oisst"; oisst3$period = "2000-2009"
-  load(paste0("outputs/OISST_0.96667_", region, "_LEHI_2012-2021.RData")); oisst4 = anom; oisst4$source = "oisst"; oisst4$period = "2010-2019"
+  load(paste0("outputs/OISST_0.96667_", region, "_LEHI_2012-2023.RData")); oisst4 = anom; oisst4$source = "oisst"; oisst4$period = "2010-2023"
   
   if (mode == "annual") {
     
