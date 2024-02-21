@@ -43,8 +43,8 @@ calculate_anomalies = function(period, data){
   if (period == "1980-1989") Target <- df[[301:420]] #Jan 1980 - Dec 1989
   if (period == "1990-1999") Target <- df[[421:540]] #Jan 1990 - Dec 1999
   if (period == "2000-2009") Target <- df[[541:660]] #Jan 2000 - Dec 2009
-  if (period == "2010-2022") Target <- df[[661:816]] #Jan 2010 - Dec 2022
-  if (period == "2022") Target <- df[[697:816]] #Jan 2013 - Dec 2022
+  if (period == "2010-2019") Target <- df[[661:780]] #Jan 2010 - Dec 2019
+  if (period == "2020-2022") Target <- df[[781:816]] #Jan 2020 - Dec 2022
   
   values(Target)[values(Target) == -1000] = -1.8 
   
@@ -110,11 +110,11 @@ calculate_anomalies = function(period, data){
 calculate_anomalies("1980-1989", "HadI")
 calculate_anomalies("1990-1999", "HadI")
 calculate_anomalies("2000-2009", "HadI")
-calculate_anomalies("2010-2022", "HadI")
-calculate_anomalies("2022", "HadI")
+calculate_anomalies("2010-2019", "HadI")
+calculate_anomalies("2020-2022", "HadI")
 
 calculate_anomalies("1980-1989", "COBE")
 calculate_anomalies("1990-1999", "COBE")
 calculate_anomalies("2000-2009", "COBE")
-calculate_anomalies("2010-2022", "COBE")
-calculate_anomalies("2022", "COBE")
+calculate_anomalies("2010-2019", "COBE")
+calculate_anomalies("2020-2022", "COBE")
