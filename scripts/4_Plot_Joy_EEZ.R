@@ -18,7 +18,7 @@ rm(list = ls())
 percentile = 0.96667 #based on 30 years baseline (1955-1984)
 
 period = c("1980-1989", "1990-1999", "2000-2009", "2010-2019")
-period = c("1985-1994", "1995_2004", "2005-2014", "2015-2023")
+# period = c("1985-1994", "1995_2004", "2005-2014", "2015-2023")
 
 # rescale function
 range01 <- function(x){(x-min(x))/(max(x)-min(x))}
@@ -67,11 +67,11 @@ rank_joy_lme_eez = function(region){
     # hadi <- st_intersection(tas, st_buffer(shape, 0))
     hadi$sum = range01(hadi$sum)
     prov_levels <- hadi %>% # Reorder levels by mean risk by privince 
-      dplyr::select(sum,UNIT) %>%
-      group_by(UNIT) %>%
+      dplyr::select(sum,SOVEREIGN1) %>%
+      group_by(SOVEREIGN1) %>%
       mutate(unit_median = median(sum))
-    levels <- unique(prov_levels$UNIT[order(prov_levels$unit_median)])
-    hadi$UNIT <- factor(hadi$UNIT, levels = levels, ordered = TRUE)
+    levels <- unique(prov_levels$SOVEREIGN1[order(prov_levels$unit_median)])
+    hadi$UNIT <- factor(hadi$SOVEREIGN1, levels = levels, ordered = TRUE)
     df = table(hadi$UNIT)
     df = as.data.frame(df)
     df = subset(df, Freq > 2)
@@ -87,11 +87,11 @@ rank_joy_lme_eez = function(region){
     # cobe <- st_intersection(tas, st_buffer(shape, 0))
     cobe$sum = range01(cobe$sum)
     prov_levels <- cobe %>% # Reorder levels by mean risk by privince 
-      dplyr::select(sum,UNIT) %>%
-      group_by(UNIT) %>%
+      dplyr::select(sum,SOVEREIGN1) %>%
+      group_by(SOVEREIGN1) %>%
       mutate(unit_median = median(sum))
-    levels <- unique(prov_levels$UNIT[order(prov_levels$unit_median)])
-    cobe$UNIT <- factor(cobe$UNIT, levels = levels, ordered = TRUE)
+    levels <- unique(prov_levels$SOVEREIGN1[order(prov_levels$unit_median)])
+    cobe$UNIT <- factor(cobe$SOVEREIGN1, levels = levels, ordered = TRUE)
     df = table(cobe$UNIT)
     df = as.data.frame(df)
     df = subset(df, Freq > 2)
@@ -103,22 +103,21 @@ rank_joy_lme_eez = function(region){
     
     tas_combined = rbind(tas_combined, tas)
     
-    
   }
   
-  #pick large EEZs
-  pdf(paste0("~/Desktop/joy_", region, "_selected_", percentile, ".pdf"), height = 10, width = 10)
-
-  big_eezs = tas_combined %>% group_by(UNIT) %>% summarise(m = median(sum), freq = n()) %>% filter(freq > 2000)
-  big_eezs = as.data.frame(big_eezs)
-  big_eezs = big_eezs[, 1, drop = FALSE]
-  tas_combined_sub = subset(tas_combined, UNIT %in% dplyr::pull(big_eezs))
+  # #pick large EEZs
+  # pdf(paste0("outputs/joy_", region, "_selected_", percentile, ".pdf"), height = 10, width = 10)
   # 
-  # p = tas_combined_sub %>% 
-  #   mutate(location_id = as.character(geometry)) %>% 
+  # big_eezs = tas_combined %>% group_by(UNIT) %>% summarise(m = median(sum), freq = n()) %>% filter(freq > 100)
+  # big_eezs = as.data.frame(big_eezs)
+  # big_eezs = big_eezs[, 1, drop = FALSE]
+  # tas_combined_sub = subset(tas_combined, UNIT %in% dplyr::pull(big_eezs))
+  # 
+  # p = tas_combined_sub %>%
+  #   mutate(location_id = as.character(geometry)) %>%
   #   subset(source %in% c("HadISST v1.1", "COBE v2")) %>%
-  #   group_by(UNIT, period, location_id) %>% 
-  #   summarise(sum = mean(sum)) %>% 
+  #   group_by(UNIT, period, location_id) %>%
+  #   summarise(sum = mean(sum)) %>%
   #   ggplot() +
   #   geom_density(aes(x = sum, fill = period), alpha = 0.8, size = 0.01) +
   #   scale_x_continuous(
@@ -127,7 +126,7 @@ rank_joy_lme_eez = function(region){
   #     breaks = c(0, 0.5, 1)) +
   #   scale_fill_manual(values = rev(ipcc_temp_4_cols), "") +
   #   facet_wrap( ~ UNIT, scales = "fixed") +
-  #   coord_fixed(ratio = 0.05) + 
+  #   coord_fixed(ratio = 0.05) +
   #   ylab(NULL) + xlab(NULL) +
   #   theme(
   #     axis.text.y = element_blank(),
@@ -137,7 +136,6 @@ rank_joy_lme_eez = function(region){
   # print(p)
   # 
   # dev.off()
-  
   
   # remove disputed EEZs (see FML 2019 to find out why)
   exclude_list = c("Area en controversia (disputed - Peruvian point of view)", 
