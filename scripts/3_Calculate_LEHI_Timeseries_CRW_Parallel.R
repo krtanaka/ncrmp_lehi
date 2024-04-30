@@ -47,7 +47,7 @@ calculate_anomalies = function(region){
   
   percentile = 0.96667 #based on 30 years baseline (1955-1984)
   
-  # region = "Palmyra Atoll"
+  # region = "Hawaii"
   
   shp_i <- shp[shp$Territory1 %in% region,]
   
