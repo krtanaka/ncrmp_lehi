@@ -17,5 +17,4 @@ save(isl, file = 'data/isl_sf_dataframe_0.001.RData')
 eez <- readOGR(dsn = "G:/GIS/eez/World_EEZ_v11_20191118_HR_0_360", layer = "eez_v11_0_360")
 eez <- rmapshaper::ms_simplify(eez, keep = 0.001, keep_shapes = F); plot(eez)
 eez <- eez %>% st_as_sf()
-save('data/eez_sf_dataframe_0.001.RData') 
-
+save(eez, file = 'data/eez_sf_dataframe_0.001.RData') 
