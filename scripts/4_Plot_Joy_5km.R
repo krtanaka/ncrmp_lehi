@@ -17,7 +17,7 @@ rm(list = ls())
 
 percentile = 0.96667 #based on 30 years baseline (1955-1984)
 
-period = c("1980-1989", "1990-1999", "2000-2009", "2010-2019")
+# period = c("1980-1989", "1990-1999", "2000-2009", "2010-2019")
 period = c("1985-1994", "1995_2004", "2005-2014", "2015-2023")
 
 # rescale function
@@ -48,9 +48,9 @@ ipcc_temp_expand = colorRampPalette(rev(ipcc_temp))
 
 rank_joy_lme_eez = function(region){
   
-  region = "ils"
+  region = "isl"
   
-  shape = eez; shape$UNIT = shape$Country
+  shape = isl; shape$UNIT = shape$Country
   
   tas_combined = NULL
   
