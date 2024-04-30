@@ -15,10 +15,9 @@ library(patchwork)
 
 rm(list = ls())
 
-percentile = 0.96667 #based on 30 years baseline (1955-1984)
+percentile = 0.96667 # based on 30 years baseline (1985-2014)
 
-# period = c("1980-1989", "1990-1999", "2000-2009", "2010-2019")
-period = c("1985-1994", "1995_2004", "2005-2014", "2015-2023")
+period = c("1985-1994", "1995-2004", "2005-2014", "2015-2023")
 
 # rescale function
 range01 <- function(x){(x-min(x))/(max(x)-min(x))}
@@ -46,96 +45,90 @@ ipcc_temp_4_cols <- c(rgb(153, 0, 2, maxColorValue = 255, alpha = 255),
 
 ipcc_temp_expand = colorRampPalette(rev(ipcc_temp))
 
-rank_joy_lme_eez = function(region){
+rank_joy = function(region){
   
-  region = "isl"
+  # region = "region"
   
-  shape = isl; shape$UNIT = shape$Country
+  shape = isl
+  
+  if (region == "region") shape$UNIT = shape$Region
+  if (region == "island") shape$UNIT = shape$ISLAND_CD
   
   tas_combined = NULL
   
   for (i in 1:length(period)){
     
-    # i = 1
+    # i = 4
     
-    load(paste0("outputs/HadI_", percentile, "_LEHI_", period[[i]], ".RData"))
+    if (period[[i]] == "2015-2023") {
+      
+      max = 108 # 12 * 9 
+      
+    }else{
+      
+      max = 120 # 12 * 10
+      
+    }
+    
+    load(paste0("outputs/CRW_", percentile, "_LEHI_", period[[i]], ".RData"))
     anom = anom[, c(1:2, 15)]
     tas <- st_as_sf(x = anom, coords = c("x", "y"), crs = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0" )
     summary(tas)
-    # hadi <- st_intersection(tas, shape)
-    hadi <- st_intersection(tas, st_make_valid(shape))
-    # hadi <- st_intersection(tas, st_buffer(shape, 0))
-    hadi$sum = range01(hadi$sum)
-    prov_levels <- hadi %>% # Reorder levels by mean risk by privince 
-      dplyr::select(sum,UNIT) %>%
+    # crw <- st_intersection(tas, shape)
+    crw <- st_intersection(tas, st_make_valid(shape))
+    # crw <- st_intersection(tas, st_buffer(shape, 0))
+    # crw$sum = range01(crw$sum)
+    crw$sum = ((crw$sum-0)/(max-0))
+    prov_levels <- crw %>% # Reorder levels by mean risk by privince 
+      as.data.frame() %>% 
+      dplyr::select(sum, UNIT) %>%
       group_by(UNIT) %>%
       mutate(unit_median = median(sum))
     levels <- unique(prov_levels$UNIT[order(prov_levels$unit_median)])
-    hadi$UNIT <- factor(hadi$UNIT, levels = levels, ordered = TRUE)
-    df = table(hadi$UNIT)
+    crw$UNIT <- factor(crw$UNIT, levels = levels, ordered = TRUE)
+    df = table(crw$UNIT)
     df = as.data.frame(df)
     df = subset(df, Freq > 2)
     colnames(df)[1] = "UNIT"
-    hadi = merge(hadi, df)
-    hadi$source = "HadISST v1.1"; hadi$period = period[[i]]
+    crw = merge(crw, df)
+    crw$source = "crwSST v1.1"; crw$period = period[[i]]
     
-    load(paste0("outputs/COBE_", percentile, "_LEHI_", period[[i]], ".RData"))
-    anom = anom[, c(1:2, 15)]
-    tas <- st_as_sf(x = anom, coords = c("x", "y"), crs = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0" )
-    # cobe <- st_intersection(tas, shape)
-    cobe <- st_intersection(tas, st_make_valid(shape))
-    # cobe <- st_intersection(tas, st_buffer(shape, 0))
-    cobe$sum = range01(cobe$sum)
-    prov_levels <- cobe %>% # Reorder levels by mean risk by privince 
-      dplyr::select(sum,UNIT) %>%
-      group_by(UNIT) %>%
-      mutate(unit_median = median(sum))
-    levels <- unique(prov_levels$UNIT[order(prov_levels$unit_median)])
-    cobe$UNIT <- factor(cobe$UNIT, levels = levels, ordered = TRUE)
-    df = table(cobe$UNIT)
-    df = as.data.frame(df)
-    df = subset(df, Freq > 2)
-    colnames(df)[1] = "UNIT"
-    cobe = merge(cobe, df)
-    cobe$source = "COBE v2"; cobe$period = period[[i]]
-    
-    tas = rbind(hadi, cobe)
+    tas = crw
     
     tas_combined = rbind(tas_combined, tas)
-    
     
   }
   
   #pick large EEZs
   pdf(paste0("~/Desktop/joy_", region, "_selected_", percentile, ".pdf"), height = 10, width = 10)
   
-  big_eezs = tas_combined %>% group_by(UNIT) %>% summarise(m = median(sum), freq = n()) %>% filter(freq > 2000)
+  big_eezs = tas_combined %>% group_by(UNIT) %>% summarise(m = median(sum), freq = n()) %>% filter(freq > 50)
   big_eezs = as.data.frame(big_eezs)
   big_eezs = big_eezs[, 1, drop = FALSE]
   tas_combined_sub = subset(tas_combined, UNIT %in% dplyr::pull(big_eezs))
-  # 
-  # p = tas_combined_sub %>% 
-  #   mutate(location_id = as.character(geometry)) %>% 
-  #   subset(source %in% c("HadISST v1.1", "COBE v2")) %>%
-  #   group_by(UNIT, period, location_id) %>% 
-  #   summarise(sum = mean(sum)) %>% 
-  #   ggplot() +
-  #   geom_density(aes(x = sum, fill = period), alpha = 0.8, size = 0.01) +
-  #   scale_x_continuous(
-  #     limits = c(0, 1),
-  #     expand = c(0.05, 0.01),
-  #     breaks = c(0, 0.5, 1)) +
-  #   scale_fill_manual(values = rev(ipcc_temp_4_cols), "") +
-  #   facet_wrap( ~ UNIT, scales = "fixed") +
-  #   coord_fixed(ratio = 0.05) + 
-  #   ylab(NULL) + xlab(NULL) +
-  #   theme(
-  #     axis.text.y = element_blank(),
-  #     axis.ticks = element_blank(),
-  #     legend.position = "top")
-  # 
-  # print(p)
-  # 
+  
+  p = tas_combined_sub %>%
+    mutate(location_id = as.character(geometry)) %>%
+    # subset(source %in% c("HadISST v1.1", "COBE v2")) %>%
+    group_by(UNIT, period, location_id) %>%
+    summarise(sum = mean(sum)) %>%
+    ggplot() +
+    geom_density(aes(x = sum, fill = period), alpha = 0.8, size = 0.01) +
+    scale_x_continuous(
+      limits = c(0, 1),
+      expand = c(0.05, 0.01),
+      breaks = c(0, 0.5, 1)) +
+    scale_fill_manual(values = rev(ipcc_temp_4_cols), "") +
+    facet_wrap( ~ UNIT, scales = "fixed") +
+    coord_fixed(ratio = 0.05) +
+    ylab(NULL) + xlab(NULL) +
+    theme(
+      axis.text.y = element_blank(),
+      axis.ticks = element_blank(),
+      legend.position = "top")
+  
+  print(p)
+  
   # dev.off()
   
   
@@ -180,7 +173,7 @@ rank_joy_lme_eez = function(region){
   
   
   ### just keep HadISST and COBESST. discard unecessary columns ###
-  tas_combined = subset(tas_combined, source %in% c("HadISST v1.1", "COBE v2")) # remove ERSSTv5
+  # tas_combined = subset(tas_combined, source %in% c("HadISST v1.1", "COBE v2")) # remove ERSSTv5
   tas_combined = tas_combined %>% as.data.frame() %>% select(UNIT, period, source, sum, geometry)
   tas_combined = tas_combined[!is.na(tas_combined$UNIT),]
   
@@ -243,7 +236,7 @@ rank_joy_lme_eez = function(region){
   
   p = all_unit %>%
     ggplot(aes(x = sum, y = UNIT, fill = UNIT)) +
-    geom_joy(scale = 5, alpha = 0.8, size = 0.1, bandwidth = 0.03) +
+    geom_joy(scale = 5, alpha = 0.8, size = 0.1, bandwidth = 0.05) +
     theme_minimal() +
     scale_y_discrete(expand = c(0, 0)) +
     scale_x_continuous(expand = c(-0.05, 0.1),
@@ -269,41 +262,41 @@ rank_joy_lme_eez = function(region){
   
 }
 
-eez = rank_joy_lme_eez("eez")
+ncrmp = rank_joy("island")
+ncrmp = rank_joy("region")
 
 #########################################
 ### Reorder units by 2010-2019 median ###
 #########################################
 
-# merge hadi and cobe from 2010-2019
-eez = eez %>% 
-  subset(period %in% c("2010-2019")) %>% 
+ncrmp = ncrmp %>% 
+  subset(period %in% c("2015-2023")) %>% 
   mutate(location_id = as.character(geometry)) %>%
   group_by(UNIT, location_id) %>%
   summarise(sum = median(sum, na.rm = T))
 
 #you have to repeaet ranking because some units are ranked at same spots
-df1 = eez %>% group_by(UNIT) %>% summarise(m = median(sum), freq = n()) %>% filter(freq > 3) %>% top_n(15, m); df1 = df1 %>% top_n(15)
-df2 = eez %>% group_by(UNIT) %>% summarise(m = median(sum), freq = n()) %>% filter(freq > 3) %>% top_n(-15, m)
+df1 = ncrmp %>% group_by(UNIT) %>% summarise(m = median(sum), freq = n()) %>% filter(freq > 3) %>% top_n(15, m); df1 = df1 %>% top_n(15)
+df2 = ncrmp %>% group_by(UNIT) %>% summarise(m = median(sum), freq = n()) %>% filter(freq > 3) %>% top_n(-15, m)
 sub = rbind(df1, df2)
 sub = as.vector(sub$UNIT); sub #see top 15 bottom 15
-eez_sub = subset(eez, UNIT %in% sub) #subset
-eez_sub = eez_sub %>% group_by(UNIT) %>% mutate(m = median(sum)) %>% arrange(UNIT, m)
-eez_sub = eez_sub[,c("UNIT", "sum")]; eez_sub = as.data.frame(eez_sub); eez_sub = eez_sub[1:2]; eez_sub$class = "EEZ"
+ncrmp_sub = subset(ncrmp, UNIT %in% sub) #subset
+ncrmp_sub = ncrmp_sub %>% group_by(UNIT) %>% mutate(m = median(sum)) %>% arrange(UNIT, m)
+ncrmp_sub = ncrmp_sub[,c("UNIT", "sum")]; ncrmp_sub = as.data.frame(ncrmp_sub); ncrmp_sub = ncrmp_sub[1:2]; ncrmp_sub$class = "ncrmp"
 
-pdf(paste0("outputs/EEZ.", percentile, "_", Sys.Date(), ".pdf"), width = 8, height = 6)
-(p = eez_sub %>% 
+pdf(paste0("outputs/ncrmp.", percentile, "_", Sys.Date(), ".pdf"), width = 8, height = 6)
+(p = ncrmp_sub %>% 
     mutate(UNIT = forcats::fct_reorder(UNIT, sum)) %>%
     ggplot(aes(x = sum, y = UNIT, fill = UNIT)) +
     geom_joy(scale = 3, alpha = 0.8, size = 0.1) +
     theme_joy(grid = F) +
     scale_y_discrete(expand = c(0.05, 0)) + # will generally have to set the `expand` option
     scale_x_continuous(limits = c(0, 1), expand = c(0, 0), breaks = c(0,0.5, 1)) +
-    scale_fill_cyclical(values = ipcc_temp_expand(length(unique(eez_sub$UNIT))))+
+    scale_fill_cyclical(values = ipcc_temp_expand(length(unique(ncrmp_sub$UNIT))))+
     ylab(NULL) + xlab(NULL) +
-    coord_fixed(ratio = 0.1) + 
+    coord_fixed(ratio = 0.05) + 
     theme(axis.text.y = element_text(size = 10),
-          legend.position = "none") + 
-    labs(tag = "(c) Exclusive Economic Zone"))
+          legend.position = "none"))
+    # labs(tag = "(c) Exclusive Economic Zone"))
 dev.off()
 
