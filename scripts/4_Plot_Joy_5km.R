@@ -15,6 +15,11 @@ library(patchwork)
 
 rm(list = ls())
 
+isl_names <- read_csv("data/island_name_code.csv") %>%
+  select(Island_Code, Island) %>% 
+  setNames(c("UNIT", "Island")) %>%
+  as.data.frame()
+
 percentile = 0.96667 # based on 30 years baseline (1985-2014)
 
 period = c("1985-1994", "1995-2004", "2005-2014", "2015-2023")
@@ -47,7 +52,7 @@ ipcc_temp_expand = colorRampPalette(rev(ipcc_temp))
 
 rank_joy = function(region){
   
-  # region = "region"
+  # region = "island"
   
   shape = isl
   
@@ -99,36 +104,35 @@ rank_joy = function(region){
     
   }
   
-  #pick large EEZs
-  pdf(paste0("~/Desktop/joy_", region, "_selected_", percentile, ".pdf"), height = 10, width = 10)
-  
-  big_eezs = tas_combined %>% group_by(UNIT) %>% summarise(m = median(sum), freq = n()) %>% filter(freq > 50)
-  big_eezs = as.data.frame(big_eezs)
-  big_eezs = big_eezs[, 1, drop = FALSE]
-  tas_combined_sub = subset(tas_combined, UNIT %in% dplyr::pull(big_eezs))
-  
-  p = tas_combined_sub %>%
-    mutate(location_id = as.character(geometry)) %>%
-    # subset(source %in% c("HadISST v1.1", "COBE v2")) %>%
-    group_by(UNIT, period, location_id) %>%
-    summarise(sum = mean(sum)) %>%
-    ggplot() +
-    geom_density(aes(x = sum, fill = period), alpha = 0.8, size = 0.01) +
-    scale_x_continuous(
-      limits = c(0, 1),
-      expand = c(0.05, 0.01),
-      breaks = c(0, 0.5, 1)) +
-    scale_fill_manual(values = rev(ipcc_temp_4_cols), "") +
-    facet_wrap( ~ UNIT, scales = "fixed") +
-    coord_fixed(ratio = 0.05) +
-    ylab(NULL) + xlab(NULL) +
-    theme(
-      axis.text.y = element_blank(),
-      axis.ticks = element_blank(),
-      legend.position = "top")
-  
-  print(p)
-  
+  # # pick large units
+  # pdf(paste0("~/Desktop/joy_", region, "_selected_", percentile, ".pdf"), height = 10, width = 10)
+  # 
+  # big_units = tas_combined %>% group_by(UNIT) %>% summarise(m = median(sum), freq = n()) %>% filter(freq > 100)
+  # big_units = as.data.frame(big_units)
+  # big_units = big_units[, 1, drop = FALSE]
+  # tas_combined_sub = subset(tas_combined, UNIT %in% dplyr::pull(big_units))
+  # 
+  # p = tas_combined_sub %>%
+  #   mutate(location_id = as.character(geometry)) %>%
+  #   group_by(UNIT, period, location_id) %>%
+  #   summarise(sum = mean(sum)) %>%
+  #   ggplot() +
+  #   geom_density(aes(x = sum, fill = period), alpha = 0.8, size = 0.05) +
+  #   scale_x_continuous(
+  #     limits = c(0, 0.5),
+  #     expand = c(0.05, 0.01),
+  #     breaks = c(0, 0.25, 0.5)) +
+  #   scale_fill_manual(values = rev(ipcc_temp_4_cols), "") +
+  #   facet_wrap( ~ UNIT, scales = "fixed") +
+  #   # coord_fixed(ratio = 0.03) +
+  #   ylab(NULL) + xlab(NULL) +
+  #   theme(
+  #     axis.text.y = element_blank(),
+  #     axis.ticks = element_blank(),
+  #     legend.position = "top")
+  # 
+  # print(p)
+  # 
   # dev.off()
   
   
@@ -213,10 +217,10 @@ rank_joy = function(region){
   summary$UNIT[duplicated(summary$UNIT)] <- ""
   colnames(summary) = c("Unit", "Period", "Mean", "SD", "SE")
   
-  s1 = summary %>% subset(Period == "1980-1989")
-  s2 = summary %>% subset(Period == "1990-1999")
-  s3 = summary %>% subset(Period == "2000-2009")
-  s4 = summary %>% subset(Period == "2010-2019")
+  s1 = summary %>% subset(Period == "1985-1994")
+  s2 = summary %>% subset(Period == "1995-2004")
+  s3 = summary %>% subset(Period == "2005-2014")
+  s4 = summary %>% subset(Period == "2015-2023")
   
   summary = cbind(s1, s2, s3, s4)
   summary =  summary[!is.na(summary$Unit),]
@@ -236,16 +240,16 @@ rank_joy = function(region){
   
   p = all_unit %>%
     ggplot(aes(x = sum, y = UNIT, fill = UNIT)) +
-    geom_joy(scale = 5, alpha = 0.8, size = 0.1, bandwidth = 0.05) +
+    geom_joy(scale = 5, alpha = 0.8, size = 2, bandwidth = 0.01) +
     theme_minimal() +
     scale_y_discrete(expand = c(0, 0)) +
     scale_x_continuous(expand = c(-0.05, 0.1),
-                       limits = c(0, 1),
-                       breaks = c(0.25,  0.75)) +
+                       limits = c(0, 0.5),
+                       breaks = c(0, 0.25, 0.5)) +
     scale_fill_cyclical(values = ipcc_temp_expand)+
-    facet_wrap(.~period, ncol = 4) +
+    facet_wrap(.~period, ncol = 1) +
     ylab(NULL) + xlab(NULL) +
-    coord_fixed(ratio = 0.1) +
+    # coord_fixed(ratio = 0.01) +
     theme(axis.text.y = element_text(size = 10),
           panel.background = element_blank(),
           panel.grid.major.x = element_blank(),
@@ -254,9 +258,14 @@ rank_joy = function(region){
           panel.grid.minor.y = element_blank(),
           legend.position = "none")
   
-  pdf(paste0("outputs/joy_", region, "_", percentile, ".pdf"), height = 10, width = 10)
-  print(p)
-  dev.off()
+  # pdf(paste0("outputs/joy_", region, "_", percentile, ".pdf"), height = 20, width = 20)
+  # print(p)
+  # dev.off()
+  
+  if (region == "island") {
+    tas_combined = merge(tas_combined, isl_names)
+    tas_combined$UNIT = tas_combined$Island
+  }
   
   return(tas_combined)
   
@@ -266,14 +275,16 @@ ncrmp = rank_joy("island")
 ncrmp = rank_joy("region")
 
 #########################################
-### Reorder units by 2010-2019 median ###
+### Reorder units by 2015-2023 median ###
 #########################################
 
 ncrmp = ncrmp %>% 
   subset(period %in% c("2015-2023")) %>% 
   mutate(location_id = as.character(geometry)) %>%
   group_by(UNIT, location_id) %>%
-  summarise(sum = median(sum, na.rm = T))
+  summarise(sum = median(sum, na.rm = T)) %>% 
+  mutate(UNIT = tolower(UNIT)) %>% 
+  as.data.frame()
 
 #you have to repeaet ranking because some units are ranked at same spots
 df1 = ncrmp %>% group_by(UNIT) %>% summarise(m = median(sum), freq = n()) %>% filter(freq > 3) %>% top_n(15, m); df1 = df1 %>% top_n(15)
@@ -284,19 +295,19 @@ ncrmp_sub = subset(ncrmp, UNIT %in% sub) #subset
 ncrmp_sub = ncrmp_sub %>% group_by(UNIT) %>% mutate(m = median(sum)) %>% arrange(UNIT, m)
 ncrmp_sub = ncrmp_sub[,c("UNIT", "sum")]; ncrmp_sub = as.data.frame(ncrmp_sub); ncrmp_sub = ncrmp_sub[1:2]; ncrmp_sub$class = "ncrmp"
 
-pdf(paste0("outputs/ncrmp.", percentile, "_", Sys.Date(), ".pdf"), width = 8, height = 6)
+# pdf(paste0("outputs/ncrmp.", percentile, "_", Sys.Date(), ".pdf"), width = 8, height = 6)
 (p = ncrmp_sub %>% 
     mutate(UNIT = forcats::fct_reorder(UNIT, sum)) %>%
     ggplot(aes(x = sum, y = UNIT, fill = UNIT)) +
-    geom_joy(scale = 3, alpha = 0.8, size = 0.1) +
+    geom_joy(scale = 3, alpha = 0.8, show.legend = F) +
     theme_joy(grid = F) +
     scale_y_discrete(expand = c(0.05, 0)) + # will generally have to set the `expand` option
-    scale_x_continuous(limits = c(0, 1), expand = c(0, 0), breaks = c(0,0.5, 1)) +
-    scale_fill_cyclical(values = ipcc_temp_expand(length(unique(ncrmp_sub$UNIT))))+
+    # scale_x_continuous(limits = c(0, 1), expand = c(0, 0), breaks = c(0,0.5, 1)) +
+    scale_fill_cyclical(values = ipcc_temp_expand(length(unique(ncrmp_sub$UNIT)))) +
     ylab(NULL) + xlab(NULL) +
-    coord_fixed(ratio = 0.05) + 
+    # coord_fixed(ratio = 0.05) + 
     theme(axis.text.y = element_text(size = 10),
           legend.position = "none"))
-    # labs(tag = "(c) Exclusive Economic Zone"))
-dev.off()
+# labs(tag = "(c) Exclusive Economic Zone"))
+# dev.off()
 
