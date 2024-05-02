@@ -37,6 +37,9 @@ ipcc_col <- c(rgb(103, 0, 31, maxColorValue = 255, alpha = 255),
               rgb(33, 102, 172, maxColorValue = 255, alpha = 255),
               rgb(5, 48, 97, maxColorValue = 255, alpha = 255))
 
+# coarse shape files, see prep_shapefile.R
+load(paste0('data/isl_sf_dataframe_0.001.RData'))
+
 map = function(mode){
   
   load("outputs/CRW_0.96667_LEHI_1985-1994.RData"); crw1 = anom; crw1$source = "CRW v1.1"; crw1$period = "1985-1994"
@@ -48,6 +51,22 @@ map = function(mode){
     
     anom = rbind(crw1, crw2, crw3, crw4)
     
+    anom$lon = anom$x
+    anom$lat = anom$y
+    anom <- st_as_sf(x = anom, coords = c("x", "y"), crs = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0" )
+    anom <- st_intersection(anom, st_make_valid(isl))
+    anom = anom %>% as.data.frame()
+    
+    anom = anom %>% 
+      mutate(x = lon,
+             y = lat,
+             island = ISLAND_CD, 
+             region = Region) %>% 
+      select(x, y, 
+             jan, feb, mar, apr, may, jun, 
+             jul, aug, sep, oct, nov, dec, 
+             sum, source, period, island, region)
+    
     anom %>% 
       filter(period != "2015-2023") %>%
       group_by(period) %>% 
@@ -56,26 +75,26 @@ map = function(mode){
     anom %>%
       filter(period == "2015-2023") %>%
       group_by(period) %>%
-      summarise(mean = mean(sum)/70)
+      summarise(mean = mean(sum)/108)
     
     anom_i_a = anom %>% 
       filter(period != "2015-2023") %>% 
       mutate(x = round(x, 1),
              y = round(y, 1)) %>% 
-      group_by(x, y, period) %>% 
+      group_by(x, y, period, island, region) %>% 
       summarise(sum = mean(sum)/120)
     
     anom_i_b = anom %>% 
       filter(period == "2015-2023") %>% 
       mutate(x = round(x, 1),
              y = round(y, 1)) %>% 
-      group_by(x, y, period) %>% 
-      summarise(sum = mean(sum)/70)
+      group_by(x, y, period, island, region) %>% 
+      summarise(sum = mean(sum)/108)
     
     anom_i = rbind(anom_i_a, anom_i_b); rm(anom_i_a, anom_i_b)
     
     (p = anom_i %>% 
-        # filter(period != "2015-2021") %>% 
+        filter(region == "MHI") %>%
         ggplot() + 
         geom_raster(aes(x, y, fill = sum)) +
         # geom_tile(aes(x, y, fill = sum), width = 1, height = 1) +
@@ -83,9 +102,10 @@ map = function(mode){
         scale_fill_gradientn(colors = rev(ipcc_col), "") +
         # scale_x_continuous(expand = c(-0.005, 15), "", limits = range(anom$x)) +
         # scale_y_continuous(expand = c(-0.005, 15), "", limits = range(anom$y)) +
-        facet_wrap(~period, nrow = 2) +
+        # facet_wrap(~period, nrow = 2) +
+        facet_grid(region~period, scales = "free") +
         # coord_fixed() + 
-        coord_sf(xlim = range(anom$x), ylim = range(anom$y)) +
+        # coord_sf(xlim = range(anom_i$x), ylim = range(anom_i$y)) +
         # coord_map("ortho", orientation = c(0, median(anom$x), 0)) + #normal
         # coord_map(projection = "mercator") +
         theme(axis.title = element_blank(),
@@ -104,20 +124,37 @@ map = function(mode){
     
     anom = rbind(crw1, crw2, crw3, crw4)
     
-    season_1 = anom[,c("x", "y", "jan", "feb", "mar", "source", "period")]; season_1$season = "Jan_Feb_Mar"
-    season_2 = anom[,c("x", "y", "jul", "aug", "sep", "source", "period")]; season_2$season = "Jul_Aug_Sep"
+    anom$lon = anom$x
+    anom$lat = anom$y
+    anom <- st_as_sf(x = anom, coords = c("x", "y"), crs = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0" )
+    anom <- st_intersection(anom, st_make_valid(isl))
+    anom = anom %>% as.data.frame()
+    
+    anom = anom %>% 
+      mutate(x = lon,
+             y = lat,
+             island = ISLAND_CD, 
+             region = Region) %>% 
+      select(x, y, 
+             jan, feb, mar, apr, may, jun, 
+             jul, aug, sep, oct, nov, dec, 
+             sum, source, period, island, region)
+    
+    season_1 = anom[,c("x", "y", "jan", "feb", "mar", "source", "period", "island", "region")]; season_1$season = "Jan_Feb_Mar"
+    season_2 = anom[,c("x", "y", "jul", "aug", "sep", "source", "period", "island", "region")]; season_2$season = "Jul_Aug_Sep"
     
     season_1$sum = rowSums(season_1[3:5])
     season_2$sum = rowSums(season_2[3:5])
     
-    season_1 = season_1 %>% group_by(x, y) %>% summarise(sum = mean(sum)/30)
-    season_2 = season_2 %>% group_by(x, y) %>% summarise(sum = mean(sum)/30)
+    season_1 = season_1 %>% group_by(x, y, island, region) %>% summarise(sum = mean(sum)/30)
+    season_2 = season_2 %>% group_by(x, y, island, region) %>% summarise(sum = mean(sum)/30)
     
     seasonal_differnece = season_2$sum - season_1$sum #summer - winter
-    seasonal_differnece = cbind(season_1[,1:2], seasonal_differnece)
-    colnames(seasonal_differnece)[3] = "diff"
+    seasonal_differnece = cbind(season_1[,1:4], seasonal_differnece)
+    colnames(seasonal_differnece)[5] = "diff"
     
     (p = seasonal_differnece %>% 
+        # filter(region == "PRIA") %>% 
         ggplot() +
         geom_raster(aes(x, y, fill = diff)) +
         # geom_tile(aes(x, y, fill = diff), width = 0.5, height = 0.5) + 

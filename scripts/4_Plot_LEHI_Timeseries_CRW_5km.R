@@ -32,7 +32,7 @@ for (y in 1:length(region_list)) {
   
   load(paste0("outputs/CRW_timeseries_0.96667_", region_list[y], "_5km.RData"))
   crw = yy_anom
-  crw$data = "HadI"
+  crw$data = "CRW"
   crw$region = region_list[y]
   
   df = crw
