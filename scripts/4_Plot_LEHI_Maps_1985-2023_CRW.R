@@ -3,7 +3,7 @@ library(colorRamps)
 library(ggpubr)
 library(rnaturalearth)
 library(sf)
-library(rgdal)
+# library(rgdal)
 library(dplyr)
 library(maps)
 library(ggjoy)
@@ -103,7 +103,7 @@ map = function(mode){
         # scale_x_continuous(expand = c(-0.005, 15), "", limits = range(anom$x)) +
         # scale_y_continuous(expand = c(-0.005, 15), "", limits = range(anom$y)) +
         # facet_wrap(~period, nrow = 2) +
-        facet_grid(region~period, scales = "free") +
+        facet_wrap(region~period, scales = "free", ncol = 4) +
         # coord_fixed() + 
         # coord_sf(xlim = range(anom_i$x), ylim = range(anom_i$y)) +
         # coord_map("ortho", orientation = c(0, median(anom$x), 0)) + #normal

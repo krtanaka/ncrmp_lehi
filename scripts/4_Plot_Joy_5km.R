@@ -3,7 +3,7 @@ library(colorRamps)
 library(ggpubr)
 library(rnaturalearth)
 library(sf)
-library(rgdal)
+# library(rgdal)
 library(dplyr)
 library(maps)
 library(ggjoy)
@@ -258,11 +258,12 @@ rank_joy = function(region){
           panel.grid.minor.y = element_blank(),
           legend.position = "none")
   
-  # pdf(paste0("outputs/joy_", region, "_", percentile, ".pdf"), height = 20, width = 20)
-  # print(p)
-  # dev.off()
+  pdf(paste0("outputs/joy_", region, "_", percentile, ".pdf"), height = 20, width = 10)
+  print(p)
+  dev.off()
   
   if (region == "island") {
+    tas_combined = tas_combined %>% mutate(UNIT = tolower(UNIT))
     tas_combined = merge(tas_combined, isl_names)
     tas_combined$UNIT = tas_combined$Island
   }
@@ -295,7 +296,7 @@ ncrmp_sub = subset(ncrmp, UNIT %in% sub) #subset
 ncrmp_sub = ncrmp_sub %>% group_by(UNIT) %>% mutate(m = median(sum)) %>% arrange(UNIT, m)
 ncrmp_sub = ncrmp_sub[,c("UNIT", "sum")]; ncrmp_sub = as.data.frame(ncrmp_sub); ncrmp_sub = ncrmp_sub[1:2]; ncrmp_sub$class = "ncrmp"
 
-# pdf(paste0("outputs/ncrmp.", percentile, "_", Sys.Date(), ".pdf"), width = 8, height = 6)
+pdf(paste0("outputs/ncrmp.", percentile, "_", Sys.Date(), ".pdf"), width = 8, height = 6)
 (p = ncrmp_sub %>% 
     mutate(UNIT = forcats::fct_reorder(UNIT, sum)) %>%
     ggplot(aes(x = sum, y = UNIT, fill = UNIT)) +
@@ -309,5 +310,5 @@ ncrmp_sub = ncrmp_sub[,c("UNIT", "sum")]; ncrmp_sub = as.data.frame(ncrmp_sub); 
     theme(axis.text.y = element_text(size = 10),
           legend.position = "none"))
 # labs(tag = "(c) Exclusive Economic Zone"))
-# dev.off()
+dev.off()
 
