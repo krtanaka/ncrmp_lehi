@@ -157,8 +157,8 @@ df$LaNina = ifelse(df$Year %in% LaNina, "Y", df$LaNina)
     summarise(year_sum = mean(year_sum)) %>% 
     as.data.frame() %>% 
     ggplot(aes(Time, year_sum, color = year_sum)) +
-    geom_vline(xintercept = df$Time[df$ElNino == "Y"], color = "red", alpha = 0.1) +
-    geom_vline(xintercept = df$Time[df$LaNina == "Y"], color = "blue", alpha = 0.1) +
+    # geom_vline(xintercept = df$Time[df$ElNino == "Y"], color = "red", alpha = 0.1) +
+    # geom_vline(xintercept = df$Time[df$LaNina == "Y"], color = "blue", alpha = 0.1) +
     geom_line(alpha = 0.2) +
     geom_point(alpha = 0.8, size = 5) +
     # scale_y_continuous(limits = c(0, 1)) + 
