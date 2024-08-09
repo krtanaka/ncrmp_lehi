@@ -43,6 +43,18 @@ ipcc_temp <- c(rgb(103, 0, 31, maxColorValue = 255, alpha = 255),
                rgb(33, 102, 172, maxColorValue = 255, alpha = 255),
                rgb(5, 48, 97, maxColorValue = 255, alpha = 255))
 
+ipcc_col <- c(rgb(103, 0, 31, maxColorValue = 255, alpha = 255),
+              rgb(178, 24, 43, maxColorValue = 255, alpha = 255),
+              rgb(214, 96, 77, maxColorValue = 255, alpha = 255),
+              rgb(244, 165, 130, maxColorValue = 255, alpha = 255),
+              rgb(253, 219, 199, maxColorValue = 255, alpha = 255),
+              rgb(247, 247, 247, maxColorValue = 255, alpha = 255),
+              rgb(209, 229, 240, maxColorValue = 255, alpha = 255),
+              rgb(146, 197, 222, maxColorValue = 255, alpha = 255),
+              rgb(67, 147, 195, maxColorValue = 255, alpha = 255),
+              rgb(33, 102, 172, maxColorValue = 255, alpha = 255),
+              rgb(5, 48, 97, maxColorValue = 255, alpha = 255))
+
 ipcc_temp_4_cols <- c(rgb(153, 0, 2, maxColorValue = 255, alpha = 255),
                       rgb(196, 121, 0, maxColorValue = 255, alpha = 255),
                       rgb(112, 160, 205, maxColorValue = 255, alpha = 255),
@@ -53,6 +65,7 @@ ipcc_temp_expand = colorRampPalette(rev(ipcc_temp))
 rank_joy = function(region){
   
   # region = "island"
+  # region = "region"
   
   shape = isl
   
@@ -238,29 +251,44 @@ rank_joy = function(region){
     group_by(UNIT, period, location_id) %>%
     summarise(sum = median(sum, na.rm = T))
   
+  library(ggridges)
+  
+  diff = all_unit %>%
+    subset(period == c("1985-1994", "2015-2023")) %>%
+    group_by(period, UNIT) %>% 
+    summarise(sum = mean(sum)) %>% 
+    ungroup() %>% 
+    group_by(UNIT) %>%
+    tidyr::spread(key = period, value = sum) %>%
+    mutate(difference = `2015-2023` - `1985-1994`) %>% 
+    select(UNIT, difference)  
+  
   p = all_unit %>%
-    ggplot(aes(x = sum, y = UNIT, fill = UNIT)) +
-    geom_joy(scale = 5, alpha = 0.8, size = 2, bandwidth = 0.01) +
+    subset(period == c("1985-1994", "2015-2023")) %>%
+    group_by(period, UNIT) %>% 
+    summarise(sum = mean(sum)) %>% 
+    left_join(diff) %>% 
+    ggplot(aes(x = sum, y = reorder(UNIT, difference), fill = period)) +
+    geom_line(aes(group = UNIT, color = difference), size = 2) + 
+    geom_point(shape = 21, size = 3) +
     theme_minimal() +
-    scale_y_discrete(expand = c(0, 0)) +
-    scale_x_continuous(expand = c(-0.05, 0.1),
-                       limits = c(0, 0.5),
-                       breaks = c(0, 0.25, 0.5)) +
-    scale_fill_cyclical(values = ipcc_temp_expand)+
-    facet_wrap(.~period, ncol = 1) +
     ylab(NULL) + xlab(NULL) +
     # coord_fixed(ratio = 0.01) +
     theme(axis.text.y = element_text(size = 10),
-          panel.background = element_blank(),
-          panel.grid.major.x = element_blank(),
-          panel.grid.minor.x = element_blank(),
-          panel.grid.major.y = element_blank(),
-          panel.grid.minor.y = element_blank(),
-          legend.position = "none")
+          # panel.background = element_blank(),
+          # panel.grid.major.x = element_blank(),
+          # panel.grid.minor.x = element_blank(),
+          # panel.grid.major.y = element_blank(),
+          panel.grid.minor.y = element_blank()
+          )
   
-  pdf(paste0("outputs/joy_", region, "_", percentile, ".pdf"), height = 20, width = 10)
   print(p)
-  dev.off()
+  if (region == "region") ggsave(last_plot(), file = paste0("outputs/joy_", region, "_", percentile, ".png"), height = 5, width = 6, units = "in")
+  if (region == "island") ggsave(last_plot(), file = paste0("outputs/joy_", region, "_", percentile, ".png"), height = 6, width = 8, units = "in")
+  
+  # pdf(paste0("outputs/joy_", region, "_", percentile, ".pdf"), height = 20, width = 10)
+  # print(p)
+  # dev.off()
   
   if (region == "island") {
     tas_combined = tas_combined %>% mutate(UNIT = tolower(UNIT))
@@ -279,6 +307,48 @@ ncrmp = rank_joy("region")
 ### Reorder units by 2015-2023 median ###
 #########################################
 
+ncrmp %>%
+  subset(period == "2015-2023") %>%
+  group_by(UNIT) %>% 
+  mutate(med_sum = median(sum)) %>% 
+  ggplot(aes(x = `sum`, y = reorder(UNIT, med_sum), fill = stat(x))) +
+  geom_density_ridges_gradient(
+    # bandwidth = 0.005,
+    alpha = 0.8,
+    color = "black",
+    scale = 2,
+    jittered_points = T,
+    position = position_points_jitter(width = 0.05, height = 0),
+    # point_shape = "|",
+    point_size = 1,
+    point_alpha = 0.5,
+    quantile_lines = T,
+    vline_color = c("green"),
+    quantile_fun = median
+  ) +
+  # geom_density_ridges_gradient(
+  #   bandwidth = 0.01,
+  #   scale = 3,
+  #   color = NA,
+  #   quantile_lines = T,
+  #   vline_color = c("blue"),
+  #   fill = NA,
+  #   quantile_fun = mean
+  # ) +
+  scale_fill_gradientn(colors = rev(ipcc_col), "") +
+  ylab(NULL) + xlab(NULL) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_discrete(expand = c(0, 0)) +    
+  theme(axis.text.y = element_text(size = 10),
+        panel.background = element_blank(),
+        # panel.grid.major.x = element_blank(),
+        # panel.grid.minor.x = element_blank(),
+        # panel.grid.major.y = element_blank(),
+        # panel.grid.minor.y = element_blank(),
+        legend.position = "none")
+
+ggsave(last_plot(), file = paste0("outputs/ncrmp.", percentile, "_", Sys.Date(), "_a.png"), width = 6, height = 6)
+
 ncrmp = ncrmp %>% 
   subset(period %in% c("2015-2023")) %>% 
   mutate(location_id = as.character(geometry)) %>%
@@ -296,8 +366,7 @@ ncrmp_sub = subset(ncrmp, UNIT %in% sub) #subset
 ncrmp_sub = ncrmp_sub %>% group_by(UNIT) %>% mutate(m = median(sum)) %>% arrange(UNIT, m)
 ncrmp_sub = ncrmp_sub[,c("UNIT", "sum")]; ncrmp_sub = as.data.frame(ncrmp_sub); ncrmp_sub = ncrmp_sub[1:2]; ncrmp_sub$class = "ncrmp"
 
-pdf(paste0("outputs/ncrmp.", percentile, "_", Sys.Date(), ".pdf"), width = 8, height = 6)
-(p = ncrmp_sub %>% 
+ncrmp_sub %>% 
     mutate(UNIT = forcats::fct_reorder(UNIT, sum)) %>%
     ggplot(aes(x = sum, y = UNIT, fill = UNIT)) +
     geom_joy(scale = 3, alpha = 0.8, show.legend = F) +
@@ -308,7 +377,6 @@ pdf(paste0("outputs/ncrmp.", percentile, "_", Sys.Date(), ".pdf"), width = 8, he
     ylab(NULL) + xlab(NULL) +
     # coord_fixed(ratio = 0.05) + 
     theme(axis.text.y = element_text(size = 10),
-          legend.position = "none"))
+          legend.position = "none")
 # labs(tag = "(c) Exclusive Economic Zone"))
-dev.off()
-
+ggsave(last_plot(), file = paste0("outputs/ncrmp.", percentile, "_", Sys.Date(), "_b.png"), width = 6, height = 6)
