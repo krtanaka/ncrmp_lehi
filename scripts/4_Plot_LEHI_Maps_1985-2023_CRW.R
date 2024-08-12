@@ -15,7 +15,7 @@ library(ggdark)
 
 rm(list = ls())
 
-percentile = 0.96667 #based on 30 years baseline (1955-1984)
+percentile = 0.96667 #based on 30 years baseline (1984-2014)
 
 period = c("1985-1994", "1995_2004", "2005-2014", "2015-2023")
 
@@ -95,6 +95,10 @@ map = function(mode){
     
     (p = anom_i %>% 
         filter(region == "MHI") %>%
+        # filter(period %in% c("1985-1994")) %>%
+        # filter(period %in% c( "2015-2023")) %>%
+        filter(period %in% c("1985-1994", "2015-2023")) %>%
+        # filter(period %in% c("2005-2014", "2015-2023")) %>%
         ggplot() + 
         geom_raster(aes(x, y, fill = sum)) +
         # geom_tile(aes(x, y, fill = sum), width = 1, height = 1) +
@@ -103,7 +107,8 @@ map = function(mode){
         # scale_x_continuous(expand = c(-0.005, 15), "", limits = range(anom$x)) +
         # scale_y_continuous(expand = c(-0.005, 15), "", limits = range(anom$y)) +
         # facet_wrap(~period, nrow = 2) +
-        facet_wrap(region~period, scales = "free", ncol = 4) +
+        facet_wrap(region~period, scales = "free") +
+        # facet_grid(region~period, scales = "free") +
         # coord_fixed() + 
         # coord_sf(xlim = range(anom_i$x), ylim = range(anom_i$y)) +
         # coord_map("ortho", orientation = c(0, median(anom$x), 0)) + #normal
@@ -154,13 +159,14 @@ map = function(mode){
     colnames(seasonal_differnece)[5] = "diff"
     
     (p = seasonal_differnece %>% 
-        # filter(region == "PRIA") %>% 
+        filter(region == "MHI") %>%
         ggplot() +
         geom_raster(aes(x, y, fill = diff)) +
         # geom_tile(aes(x, y, fill = diff), width = 0.5, height = 0.5) + 
         annotation_map(map_data("world"), fill = "gray50", colour = "gray20", size = 0.5) +
         scale_fill_gradientn(colors = rev(ipcc_col), "", limits = c( max(abs(seasonal_differnece$diff))*-1,
                                                                      max(abs(seasonal_differnece$diff)))) +
+        scale_fill_gradientn(colors = rev(ipcc_col), "") +
         # scale_x_continuous(expand = c(-0.005, 15), "", limits = range(anom$x)) +
         # scale_y_continuous(expand = c(-0.005, 15), "", limits = range(anom$y)) +
         # coord_map("ortho", orientation = c(0, 180, 0)) + #normal

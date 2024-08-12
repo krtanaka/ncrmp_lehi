@@ -70,7 +70,7 @@ save(df, file = "G:/SST/CRW_SST/CRW_SST.RData")
 
 load("G:/SST/CRW_SST/CRW_SST.RData")
 
-shp <- st_read(file.path("L:/ktanaka/GIS/5km_buffer/ALLPacific_Sectors_Islands_5km_buffer.shp")) %>% as("Spatial") #World EEZ v10 0-360
+shp <- st_read(file.path("N:/GIS/Projects/CommonMaps/5km_buffer/ALLPacific_Sectors_Islands_5km_buffer.shp")) %>% as("Spatial") #World EEZ v10 0-360
 # shp = recenter(shp)
 
 CRS.new <- CRS("+proj=longlat +datum=WGS84 +no_defs")
