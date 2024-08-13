@@ -52,13 +52,6 @@ for (v in c("DHW", "BL")) {
   
   save(df, file = paste0("outputs/CRW_", v, "_5km_coast.RData"))
   
-  df %>%
-    ggplot(aes(x, y, fill = mean)) +  
-    geom_point(shape = 21, size = 3, alpha = 0.8) + 
-    scale_fill_gradientn(colors = matlab.like(100)) + 
-    facet_wrap(~region, scales = "free") + 
-    ggtitle(v)
-  
   df_time <- foreach(i = 5:(ncol(df)-1), .combine = rbind, .packages = c("data.table")) %dopar% {
     
     df_i <- df[, .(v = mean(as.numeric(.SD[[1]]), na.rm = TRUE)), by = .(region, island), .SDcols = i] %>%
@@ -84,8 +77,19 @@ stopCluster(cl)
 beepr::beep(2)
 
 load("outputs/CRW_BL_5km_coast_time.RData")
+load("outputs/CRW_DHW_5km_coast_time.RData")
 
 df %>%
+  filter(region == "MHI") %>% 
+  ggplot(aes(x, y, fill = mean)) +  
+  geom_point(shape = 21, size = 3, alpha = 0.8) + 
+  scale_fill_gradientn(colors = matlab.like(100)) + 
+  facet_wrap(~region, scales = "free")
+
+load("outputs/CRW_BL_5km_coast_time.RData")
+load("outputs/CRW_DHW_5km_coast_time.RData")
+
+df_time %>%
   .[, .(v = mean(v)), by = .(year, region)] %>%
   ggplot(aes(x = year, y = v, fill = v, group = region)) + 
   geom_line() +
