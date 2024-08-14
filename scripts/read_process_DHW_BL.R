@@ -11,8 +11,6 @@ library(raster)
 library(ggplot2)
 library(colorRamps)
 
-where = c("laptop", "onaga")[1]
-
 # Set up parallel processing
 cores <- detectCores()
 cl <- makeCluster(cores-2)
@@ -39,17 +37,17 @@ for (v in c("DHW", "BAA_7daymax", "BAA", "BH")) {
   # v = "DHW"
   # v = "BAA_7daymax"
   
-  nc_list_cw <- switch(v,
-                       "DHW" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Degree_Heating_Weeks_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
-                       "BAA_7daymax" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
-                       "BAA" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Bleaching_Alert_Area_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
-                       "BH" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Bleaching_Hotspot_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE))
-  
   # nc_list_cw <- switch(v,
-  #                      "DHW" = list.files(path = "/mnt/pmos/Data_Download/Degree_Heating_Weeks_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
-  #                      "BAA_7daymax" = list.files(path = "/mnt/pmos/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
-  #                      "BAA" = list.files(path = "/mnt/pmos/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
-  #                      "BH" = list.files(path = "/mnt/pmos/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE))
+  #                      "DHW" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Degree_Heating_Weeks_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
+  #                      "BAA_7daymax" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
+  #                      "BAA" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Bleaching_Alert_Area_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
+  #                      "BH" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Bleaching_Hotspot_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE))
+  
+  nc_list_cw <- switch(v,
+                       "DHW" = list.files(path = "/mnt/pmos/Data_Download/Degree_Heating_Weeks_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
+                       "BAA_7daymax" = list.files(path = "/mnt/pmos/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
+                       "BAA" = list.files(path = "/mnt/pmos/Data_Download/Bleaching_Alert_Area_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
+                       "BH" = list.files(path = "/mnt/pmos/Data_Download/Bleaching_Hotspot_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE))
   
   nc_list_cw
   
@@ -71,9 +69,9 @@ for (v in c("DHW", "BAA_7daymax", "BAA", "BH")) {
   coordinates(latlon) <- ~x+y
   proj4string(latlon) <- CRS.new
   area <- over(latlon, isl_5km_buffer)
-  df <- cbind(as.data.table(area[,c("ISLAND_CD")]), df) %>% na.omit()
+  df <- cbind(as.data.table(area[,c("ISLAND_CD", "Region")]), df) %>% na.omit()
   df$x <- ifelse(df$x < 0, df$x + 360, df$x)
-  colnames(df)[1] = c("island")
+  colnames(df)[1:2] = c("island", "region")
   
   # attach EEZ shapefile
   latlon <- df[, c("x", "y")]
@@ -81,13 +79,13 @@ for (v in c("DHW", "BAA_7daymax", "BAA", "BH")) {
   proj4string(latlon) <- CRS.new
   area <- over(latlon, eez)
   df <- cbind(as.data.table(area[,c("Territory1")]), df) %>% na.omit()
-  colnames(df)[1] = "region"
+  colnames(df)[1] = "eez"
  
   save(df, file = paste0("outputs/CRW_", v, "_5km_coast.RData"))
   
-  df_time <- foreach(i = 5:(ncol(df)-1), .combine = rbind, .packages = c("data.table")) %dopar% {
+  df_time <- foreach(i = 6:(ncol(df)), .combine = rbind, .packages = c("data.table")) %dopar% {
     
-    df_i <- df[, .(v = mean(as.numeric(.SD[[1]]), na.rm = TRUE)), by = .(region, island), .SDcols = i] %>%
+    df_i <- df[, .(v = mean(as.numeric(.SD[[1]]), na.rm = TRUE)), by = .(region, island, eez), .SDcols = i] %>%
       .[, t := colnames(df)[i]]
     
     df_i
@@ -95,11 +93,11 @@ for (v in c("DHW", "BAA_7daymax", "BAA", "BH")) {
   }
   
   df_time <- df_time %>%
-    filter(t != "y") %>%
+    # filter(t != "y") %>%
     mutate(t = as.Date(t),
            year = year(t),
            month = month(t)) %>%
-    .[, .(v = mean(v)), by = .(year, month, region, island)]
+    .[, .(v = mean(v)), by = .(year, month, region, island, eez)]
   
   save(df_time, file = paste0("outputs/CRW_", v, "_5km_coast_time.RData"))
   
