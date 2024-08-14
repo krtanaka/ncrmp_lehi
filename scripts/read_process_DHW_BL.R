@@ -11,6 +11,8 @@ library(raster)
 library(ggplot2)
 library(colorRamps)
 
+where = c("laptop", "onaga")[1]
+
 # Set up parallel processing
 cores <- detectCores()
 cl <- makeCluster(cores-2)
