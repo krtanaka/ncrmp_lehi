@@ -37,17 +37,17 @@ for (v in c("DHW", "BAA_7daymax", "BAA", "BH")) {
   # v = "DHW"
   # v = "BAA_7daymax"
   
-  # nc_list_cw <- switch(v,
-  #                      "DHW" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Degree_Heating_Weeks_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
-  #                      "BAA_7daymax" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
-  #                      "BAA" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
-  #                      "BH" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE))
-  
   nc_list_cw <- switch(v,
-                       "DHW" = list.files(path = "/mnt/pmos/Data_Download/Degree_Heating_Weeks_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
-                       "BAA_7daymax" = list.files(path = "/mnt/pmos/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
-                       "BAA" = list.files(path = "/mnt/pmos/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
-                       "BH" = list.files(path = "/mnt/pmos/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE))
+                       "DHW" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Degree_Heating_Weeks_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
+                       "BAA_7daymax" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
+                       "BAA" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Bleaching_Alert_Area_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
+                       "BH" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Bleaching_Hotspot_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE))
+  
+  # nc_list_cw <- switch(v,
+  #                      "DHW" = list.files(path = "/mnt/pmos/Data_Download/Degree_Heating_Weeks_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
+  #                      "BAA_7daymax" = list.files(path = "/mnt/pmos/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
+  #                      "BAA" = list.files(path = "/mnt/pmos/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
+  #                      "BH" = list.files(path = "/mnt/pmos/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE))
   
   nc_list_cw
   
