@@ -15,38 +15,50 @@ rm(list = ls())
 select = dplyr::select
 
 # load regional DHW and BL values
-load("outputs/CRW_BL_5km_coast.RData"); df1 = df
-load("outputs/CRW_DHW_5km_coast.RData"); df2 = df
+load("outputs/CRW_BAA_5km_coast.RData"); df1 = df
+load("outputs/CRW_BAA_7daymax_5km_coast.RData"); df2 = df
+load("outputs/CRW_BH_5km_coast.RData"); df3 = df
+load("outputs/CRW_DHW_5km_coast.RData"); df4 = df
 
-common_columns <- intersect(names(df1), names(df2))
+common_columns <- intersect(names(df1), names(df4))
 
 df1 <- df1[, ..common_columns]
 df2 <- df2[, ..common_columns]
+df3 <- df3[, ..common_columns]
+df4 <- df4[, ..common_columns]
 
-df1$index = "BL"
-df2$index = "DHW"
+df1$index = "BAA"
+df2$index = "BAA_7daymax"
+df3$index = "BH"
+df4$index = "DHW"
 
-df_xy = rbind(df1, df2) %>% 
+df_xy = rbind(df1, df2, df3, df4) %>% 
   dplyr::select(last_col(), everything())
 
 df_xy$mean <- rowMeans(df_xy[, -(1:5), with = FALSE])
 
 df_xy %>%
-  filter(region == "MHI") %>% 
+  filter(region == "Hawaii") %>% 
+  filter(island == "HAW") %>% 
   ggplot(aes(x, y, fill = mean)) +  
-  geom_point(shape = 21, size = 3, alpha = 0.8) + 
+  geom_point(shape = 21, size = 5, alpha = 0.8) + 
   scale_fill_gradientn(colors = matlab.like(100)) + 
-  facet_wrap(~index, scales = "free")
+  facet_grid(~index, scales = "free")
 
-load("outputs/CRW_BL_5km_coast_time.RData"); df1 = df_time
-load("outputs/CRW_DHW_5km_coast_time.RData"); df2 = df_time
+load("outputs/CRW_BAA_5km_coast_time.RData"); df1 = df_time
+load("outputs/CRW_BAA_7daymax_5km_coast_time.RData"); df2 = df_time
+load("outputs/CRW_BH_5km_coast_time.RData"); df3 = df_time
+load("outputs/CRW_DHW_5km_coast_time.RData"); df4 = df_time
 
-df1$index = "BL"
-df2$index = "DHW"
+df1$index = "BAA"
+df2$index = "BAA_7daymax"
+df3$index = "BH"
+df4$index = "DHW"
 
-df_time = rbind(df1, df2) 
+df_time = rbind(df1, df2, df3, df4) 
 
 df_time %>%
+  # filter(index == "BAA_7daymax") %>% 
   .[, .(v = mean(v)), by = .(year, region, index)] %>%
   ggplot(aes(x = year, y = v, fill = index, group = index)) + 
   geom_line() +
@@ -103,14 +115,14 @@ table(df_time$region)
 table(lehi$region)
 
 t1 = df_time %>% 
-  subset(region == "MHI") %>% 
+  subset(region == "Guam") %>% 
   # subset(index == "DHW") %>% 
-  subset(index == "BL") %>% 
+  subset(index == "BH") %>% 
   group_by(year, month) %>% 
   summarise(v = mean(v))
 
 t2 = lehi %>% 
-  subset(region == "Hawaii") %>% 
+  subset(region == "Guam") %>% 
   group_by(Year, Month) %>% 
   summarise(v = mean(year_sum))
 
@@ -141,9 +153,6 @@ correlations <- cor(merged_data$v_t1, merged_data[, c("lag1_t2", "lag2_t2", "lag
 
 print(correlations)
 
-library(ggplot2)
-library(dplyr)
-
 # Calculate CCF
 ccf_data <- ccf(merged_data$v_t1, merged_data$v_t2, lag.max = 10, plot = FALSE)
 
@@ -164,7 +173,6 @@ ggplot(ccf_df, aes(x = lag, y = correlation)) +
        y = "Correlation")
 
 # Step 5: Cross-Correlation Function (CCF)
-ccf(merged_data$v_t1, merged_data$v_t2, lag.max = 12, plot = TRUE)
 ccf(merged_data$v_t1, merged_data$v_t2, lag.max = 12, plot = F)
 
 # Use the Granger Causality Test to test for predictive causality.
