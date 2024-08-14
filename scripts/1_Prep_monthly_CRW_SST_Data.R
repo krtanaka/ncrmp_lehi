@@ -23,6 +23,7 @@ library(data.table)
 
 # CoastWatch files
 nc_list_cw = list.files(path = "G:/SST/CRW_SST/coastwatch/", pattern = "\\.nc$", full.names = T); nc_list_cw
+nc_list_cw = list.files(path = "/mnt/ktanaka/SST/CRW_SST/coastwatch/", pattern = "\\.nc$", full.names = T); nc_list_cw
 
 # Set up parallel processing
 cores <- detectCores()
