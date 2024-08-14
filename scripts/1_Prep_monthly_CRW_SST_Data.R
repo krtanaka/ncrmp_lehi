@@ -91,5 +91,5 @@ df = df[ , -which(names(df) %in% "Region")]
 
 df$x = ifelse(df$x < 0, df$x + 360, df$x)
 
-save(df, file = "G:/SST/CRW_SST/CRW_SST_5km_coast.RData")
-save(crw_region_names, file = "G:/SST/CRW_SST/crw_region_names.RData")
+save(df, file = "outputs/CRW_SST_5km_coast.RData")
+save(crw_region_names, file = "outputs/CRW_Region_Names.RData")
