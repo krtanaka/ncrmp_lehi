@@ -1,3 +1,5 @@
+# analyzing how changes in LEHI is related to DHW or Bleaching indices
+
 rm(list = ls())
 
 library(terra)
@@ -14,39 +16,63 @@ cores <- detectCores()
 cl <- makeCluster(cores-2)
 registerDoParallel(cl)
 
-# Read shapefile once before the loop
-shp <- st_read("N:/GIS/Projects/CommonMaps/5km_buffer/ALLPacific_Sectors_Islands_5km_buffer.shp") %>% as("Spatial") 
 CRS.new <- CRS("+proj=longlat +datum=WGS84 +no_defs")
-proj4string(shp) <- CRS.new
 
-for (v in c("DHW", "BL")) {
+# Read 5km shapefile 
+isl_5km_buffer <- st_read("N:/GIS/Projects/CommonMaps/5km_buffer/ALLPacific_Sectors_Islands_5km_buffer.shp") %>% as("Spatial") 
+proj4string(isl_5km_buffer) <- CRS.new
+
+# Read EEZ shapefile
+# https://www.marineregions.org/downloads.php
+# shp <- readOGR("G:/GIS/nm/World_12NM_v3_20191118_0_360/eez_12nm_v3_0_360.shp") # World 12 Nautical Miles Zone (Territorial Seas) v2 0-360
+eez <- st_read(file.path("G:/GIS/eez/World_EEZ_v10_20180221_HR_0_360/World_EEZ_v10_2018_0_360.shp")) %>% as("Spatial") #World EEZ v10 0-360
+eez <- st_read(file.path("/mnt/ldrive/ktanaka/GIS/eez/World_EEZ_v10_20180221_HR_0_360/World_EEZ_v10_2018_0_360.shp")) %>% as("Spatial") #World EEZ v10 0-360
+eez <- eez %>% filter(Pol_type != "Overlapping claim", Sovereign1 == "United States")
+proj4string(eez) <- CRS.new # proj4string(latlon) <- CRS.new
+
+for (v in c("DHW", "BAA_7daymax", "BAA", "BH")) {
   
   # v = "DHW"
-  # v = "BL"
+  # v = "BAA_7daymax"
   
   nc_list_cw <- switch(v,
                        "DHW" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Degree_Heating_Weeks_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
-                       "BL" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Bleaching_Alert_Area_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE))
+                       "BAA_7daymax" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
+                       "BAA" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
+                       "BH" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE))
   
   nc_list_cw
   
   df <- foreach(i = 1:length(nc_list_cw), .combine = rbind, .packages = c("terra", "dplyr")) %dopar% {
+    
     df_i <- terra::rast(nc_list_cw[i])
     time_stamp <- as.character(terra::time(df_i)) %>% substring(1, 10)
+    
     df_i <- terra::as.data.frame(df_i, xy = TRUE) %>%
       dplyr::rename_with(~time_stamp, -c(x, y))
+    
     df_i
+    
   }
   
+  # clip to 5km coastal waters
   df$x <- ifelse(df$x > 180, df$x - 360, df$x)
   latlon <- df[, c("x", "y")]
   coordinates(latlon) <- ~x+y
   proj4string(latlon) <- CRS.new
-  area <- over(latlon, shp)
-  df <- cbind(as.data.table(area[,c("Region", "ISLAND_CD")]), df) %>% na.omit()
+  area <- over(latlon, isl_5km_buffer)
+  df <- cbind(as.data.table(area[,c("ISLAND_CD")]), df) %>% na.omit()
   df$x <- ifelse(df$x < 0, df$x + 360, df$x)
-  colnames(df)[1:2] = c("region", "island")
+  colnames(df)[1] = c("island")
   
+  # attach EEZ shapefile
+  latlon <- df[, c("x", "y")]
+  coordinates(latlon) <- ~x+y
+  proj4string(latlon) <- CRS.new
+  area <- over(latlon, eez)
+  df <- cbind(as.data.table(area[,c("Territory1")]), df) %>% na.omit()
+  colnames(df)[1] = "region"
+ 
   save(df, file = paste0("outputs/CRW_", v, "_5km_coast.RData"))
   
   df_time <- foreach(i = 5:(ncol(df)-1), .combine = rbind, .packages = c("data.table")) %dopar% {
