@@ -20,14 +20,16 @@ CRS.new <- CRS("+proj=longlat +datum=WGS84 +no_defs")
 
 # Read 5km shapefile 
 isl_5km_buffer <- st_read("N:/GIS/Projects/CommonMaps/5km_buffer/ALLPacific_Sectors_Islands_5km_buffer.shp") %>% as("Spatial") 
+isl_5km_buffer <- st_read("/mnt/giscm/5km_buffer/ALLPacific_Sectors_Islands_5km_buffer.shp") %>% as("Spatial") 
 proj4string(isl_5km_buffer) <- CRS.new
 
 # Read EEZ shapefile
 # https://www.marineregions.org/downloads.php
 # shp <- readOGR("G:/GIS/nm/World_12NM_v3_20191118_0_360/eez_12nm_v3_0_360.shp") # World 12 Nautical Miles Zone (Territorial Seas) v2 0-360
 eez <- st_read(file.path("G:/GIS/eez/World_EEZ_v10_20180221_HR_0_360/World_EEZ_v10_2018_0_360.shp")) %>% as("Spatial") #World EEZ v10 0-360
-eez <- st_read(file.path("/mnt/ldrive/ktanaka/GIS/eez/World_EEZ_v10_20180221_HR_0_360/World_EEZ_v10_2018_0_360.shp")) %>% as("Spatial") #World EEZ v10 0-360
-eez <- eez %>% filter(Pol_type != "Overlapping claim", Sovereign1 == "United States")
+eez <- st_read(file.path("/mnt/ktanaka/GIS/eez/World_EEZ_v10_20180221_HR_0_360/World_EEZ_v10_2018_0_360.shp")) %>% as("Spatial") #World EEZ v10 0-360
+eez <- eez[eez$Pol_type != "Overlapping claim",]
+eez <- eez[eez$Sovereign1 == "United States",]
 proj4string(eez) <- CRS.new # proj4string(latlon) <- CRS.new
 
 for (v in c("DHW", "BAA_7daymax", "BAA", "BH")) {
@@ -35,11 +37,17 @@ for (v in c("DHW", "BAA_7daymax", "BAA", "BH")) {
   # v = "DHW"
   # v = "BAA_7daymax"
   
+  # nc_list_cw <- switch(v,
+  #                      "DHW" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Degree_Heating_Weeks_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
+  #                      "BAA_7daymax" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
+  #                      "BAA" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
+  #                      "BH" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE))
+  
   nc_list_cw <- switch(v,
-                       "DHW" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Degree_Heating_Weeks_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
-                       "BAA_7daymax" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
-                       "BAA" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
-                       "BH" = list.files(path = "M:/Environmental_Data_Summary/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE))
+                       "DHW" = list.files(path = "/mnt/pmos/Data_Download/Degree_Heating_Weeks_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
+                       "BAA_7daymax" = list.files(path = "/mnt/pmos/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
+                       "BAA" = list.files(path = "/mnt/pmos/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE),
+                       "BH" = list.files(path = "/mnt/pmos/Data_Download/Bleaching_Alert_Area_7daymax_CRW_Daily/Unit_Level_Data/", pattern = "\\.nc$", full.names = TRUE))
   
   nc_list_cw
   
