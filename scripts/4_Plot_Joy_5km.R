@@ -176,18 +176,13 @@ rank_joy = function(region){
   tas_combined$UNIT = gsub("Congo, DRC", "DR Congo", tas_combined$UNIT, fixed = T)
   tas_combined$UNIT = gsub("Bonaire, Sint-Eustasius, Saba", "Netherlands", tas_combined$UNIT, fixed = T)
   tas_combined$UNIT = gsub("St. ", "Saint ", tas_combined$UNIT, fixed = T)
-  
   tas_combined$UNIT = gsub("Svalbard", "Norway", tas_combined$UNIT, fixed = T)
   tas_combined$UNIT = gsub("Jan Mayen", "Norway", tas_combined$UNIT, fixed = T)
-  
   tas_combined$UNIT = gsub("United States Minor Outlying Islands", "United States", tas_combined$UNIT, fixed = T)
   tas_combined$UNIT = gsub("United States Virgin Islands", "United States", tas_combined$UNIT, fixed = T)
-  
   tas_combined$UNIT = gsub("French Southern and Antarctic Lands", "France", tas_combined$UNIT, fixed = T)
   tas_combined$UNIT = gsub("Reunion", "France", tas_combined$UNIT, fixed = T)
-  
   tas_combined$UNIT = gsub("Virgin Islands, British", "United Kingdom", tas_combined$UNIT, fixed = T)
-  
   
   ### just keep HadISST and COBESST. discard unecessary columns ###
   # tas_combined = subset(tas_combined, source %in% c("HadISST v1.1", "COBE v2")) # remove ERSSTv5
@@ -207,13 +202,11 @@ rank_joy = function(region){
     summarise(sum = round(median(sum), 2)) %>% 
     subset(sum >= 0.66) #use upper tercile
   
-  
   ##########################
   ### expand IPCC colors ###
   ##########################
   ipcc_temp_expand = colorRampPalette(rev(ipcc_temp))
   ipcc_temp_expand = ipcc_temp_expand(length(unique(tas_combined$UNIT)))
-  
   
   #############################
   ### save full list as csv ###
@@ -309,6 +302,8 @@ ncrmp = rank_joy("region")
 
 ncrmp %>%
   subset(period == "2015-2023") %>%
+  # subset(period == "1985-1994") %>%
+  # subset(period %in% c("1985-1994", "2015-2023")) %>%
   group_by(UNIT) %>% 
   mutate(med_sum = median(sum)) %>% 
   ggplot(aes(x = `sum`, y = reorder(UNIT, med_sum), fill = stat(x))) +
@@ -346,6 +341,33 @@ ncrmp %>%
         # panel.grid.major.y = element_blank(),
         # panel.grid.minor.y = element_blank(),
         legend.position = "none")
+
+set.seed(2024)
+ncrmp %>%
+  subset(period %in% c("1985-1994", "2015-2023")) %>%
+  group_by(UNIT) %>% 
+  mutate(med_sum = median(sum)) %>% 
+  ggplot(aes(x = `sum`, y = reorder(UNIT, med_sum), fill = period)) +
+  geom_density_ridges_gradient(
+    # bandwidth = 0.005,
+    # alpha = 0.1,
+    color = "black",
+    scale = 2,
+    jittered_points = T,
+    position = position_points_jitter(width = 0.05, height = 0),
+    # point_shape = "|",
+    point_size = 2,
+    point_alpha = 0.1,
+    quantile_lines = T,
+    vline_color = c("green"),
+    quantile_fun = median
+  ) +
+  # scale_fill_gradientn(colors = rev(ipcc_col), "") +
+  ylab(NULL) + xlab(NULL) +
+  scale_y_discrete(expand = c(1, 0)) +
+  theme(axis.text.y = element_text(size = 10),
+        panel.background = element_blank(),
+         legend.position = "none")
 
 ggsave(last_plot(), file = paste0("outputs/ncrmp.", percentile, "_", Sys.Date(), "_a.png"), width = 6, height = 6)
 

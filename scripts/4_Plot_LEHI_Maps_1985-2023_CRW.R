@@ -40,6 +40,9 @@ ipcc_col <- c(rgb(103, 0, 31, maxColorValue = 255, alpha = 255),
 # coarse shape files, see prep_shapefile.R
 load(paste0('data/isl_sf_dataframe_0.001.RData'))
 
+# use ggmap
+ggmap::register_google("AIzaSyDpirvA5gB7bmbEbwB1Pk__6jiV4SXAEcY")
+
 map = function(mode){
   
   load("outputs/CRW_0.96667_LEHI_1985-1994.RData"); crw1 = anom; crw1$source = "CRW v1.1"; crw1$period = "1985-1994"
@@ -55,7 +58,7 @@ map = function(mode){
     anom$lat = anom$y
     anom <- st_as_sf(x = anom, coords = c("x", "y"), crs = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0" )
     anom <- st_intersection(anom, st_make_valid(isl))
-    anom = anom %>% as.data.frame()
+    anom <- anom %>% as.data.frame()
     
     anom = anom %>% 
       mutate(x = lon,
@@ -80,48 +83,88 @@ map = function(mode){
     anom_i_a = anom %>% 
       filter(period != "2015-2023") %>% 
       mutate(x = round(x, 1),
-             y = round(y, 1)) %>% 
+             y = round(y, 1)) %>%
       group_by(x, y, period, island, region) %>% 
       summarise(sum = mean(sum)/120)
     
     anom_i_b = anom %>% 
       filter(period == "2015-2023") %>% 
       mutate(x = round(x, 1),
-             y = round(y, 1)) %>% 
+             y = round(y, 1)) %>%
       group_by(x, y, period, island, region) %>% 
       summarise(sum = mean(sum)/108)
     
-    anom_i = rbind(anom_i_a, anom_i_b); rm(anom_i_a, anom_i_b)
+    anom_i = rbind(anom_i_a, anom_i_b)
     
-    (p = anom_i %>% 
-        filter(region == "MHI") %>%
-        # filter(period %in% c("1985-1994")) %>%
-        # filter(period %in% c( "2015-2023")) %>%
-        filter(period %in% c("1985-1994", "2015-2023")) %>%
-        # filter(period %in% c("2005-2014", "2015-2023")) %>%
-        ggplot() + 
-        geom_raster(aes(x, y, fill = sum)) +
-        # geom_tile(aes(x, y, fill = sum), width = 1, height = 1) +
-        annotation_map(map_data("world"), fill = "gray50", colour = "gray20") +
-        scale_fill_gradientn(colors = rev(ipcc_col), "") +
-        # scale_x_continuous(expand = c(-0.005, 15), "", limits = range(anom$x)) +
-        # scale_y_continuous(expand = c(-0.005, 15), "", limits = range(anom$y)) +
-        # facet_wrap(~period, nrow = 2) +
-        facet_wrap(region~period, scales = "free") +
-        # facet_grid(region~period, scales = "free") +
-        # coord_fixed() + 
-        # coord_sf(xlim = range(anom_i$x), ylim = range(anom_i$y)) +
-        # coord_map("ortho", orientation = c(0, median(anom$x), 0)) + #normal
-        # coord_map(projection = "mercator") +
-        theme(axis.title = element_blank(),
-              axis.ticks = element_blank(), 
-              axis.text = element_blank(),
-              legend.position = "bottom",
-              legend.justification = c(1,0)))
+    # (p = anom_i %>% 
+    #     filter(region == "MHI") %>%
+    #     # filter(period %in% c("1985-1994")) %>%
+    #     filter(period %in% c("2015-2023")) %>%
+    #     # filter(period %in% c("1985-1994", "2015-2023")) %>%
+    #     # filter(period %in% c("2005-2014", "2015-2023")) %>%
+    #     ggplot() + 
+    #     geom_raster(aes(x, y, fill = sum)) +
+    #     # geom_tile(aes(x, y, fill = sum), width = 1, height = 1) +
+    #     annotation_map(map_data("world"), fill = "gray50", colour = "gray20") +
+    #     scale_fill_gradientn(colors = rev(ipcc_col), "") +
+    #     # scale_x_continuous(expand = c(-0.005, 15), "", limits = range(anom$x)) +
+    #     # scale_y_continuous(expand = c(-0.005, 15), "", limits = range(anom$y)) +
+    #     # facet_wrap(~period, nrow = 2) +
+    #     # facet_wrap(region~period, scales = "free") +
+    #     # facet_grid(~period, scales = "free") +
+    #     coord_fixed() +
+    #     # coord_sf(xlim = range(anom_i$x), ylim = range(anom_i$y)) +
+    #     # coord_map("ortho", orientation = c(0, median(anom$x), 0)) + #normal
+    #     # coord_map(projection = "mercator") +
+    #     theme(axis.title = element_blank(),
+    #           axis.ticks = element_blank(), 
+    #           axis.text = element_blank(),
+    #           legend.position = "bottom",
+    #           legend.justification = c(1,0)))
     
-    png(paste0("outputs/CRW_annual_map_v1_", percentile, ".png"), height = 6.5, width = 6, units = "in", res = 500)
-    print(p)
-    dev.off()
+    anom_i <- anom_i %>%
+      mutate(x = ifelse(x > 180, x - 360, x)) %>% 
+      st_as_sf(coords = c("x", "y"), crs = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+    
+    # (p = anom_i %>% 
+    #     filter(region == "MHI") %>%
+    #     filter(period %in% c("2015-2023")) %>% 
+    #     ggplot() +
+    #     geom_sf(aes(fill = sum), size = 5, shape = 22) + 
+    #     scale_fill_gradientn(colors = rev(ipcc_col), ""))
+    
+    coordinates <- st_coordinates(anom_i %>% filter(region == "MHI") )
+    coords_df <- as.data.frame(coordinates)
+    mean_lat <- mean(coords_df$Y)
+    mean_lon <- mean(coords_df$X)
+    min_lat <- min(coords_df$Y)
+    max_lat <- max(coords_df$Y)
+    min_lon <- min(coords_df$X)
+    max_lon <- max(coords_df$X)
+    
+    map = ggmap::get_map(#location = c(mean_lon, mean_lat),
+      location =  c(left = min_lon, bottom = min_lat, right = max_lon, top = max_lat),
+      maptype = "satellite",
+      zoom = 7,
+      force = T)
+    
+    (ggmap(map) + 
+        geom_sf(data = anom_i %>% 
+                  filter(region == "MHI") %>%
+                  filter(period %in% c("2015-2023")),
+                aes(fill = sum), size = 4, shape = 22, inherit.aes = F) + 
+        scale_fill_gradientn(colors = rev(ipcc_col), name = "LEHI") +
+        scale_y_continuous(limits = c(min_lat, max_lat), "") + 
+        scale_x_continuous(limits = c(min_lon, max_lon), "") + 
+        theme(legend.position = c(0.08, 0.2),
+              legend.background = element_blank(),
+              legend.box.background = element_blank(), 
+              legend.text = element_text(color = "white", face = "bold", size = 14), 
+              legend.title = element_text(color = "white", face = "bold", size = 16)) + 
+        annotate("text", x = max_lon, y = max_lat, label = "2015-2023", 
+                 hjust = 1, vjust = 1, color = "white", size = 6))
+    
+    ggsave(last_plot(), file = paste0("outputs/CRW_LEHI_map_annual_", percentile, ".png"), height = 5, width = 8)
     
   }
   
@@ -136,6 +179,7 @@ map = function(mode){
     anom = anom %>% as.data.frame()
     
     anom = anom %>% 
+      filter(period %in% c("2015-2023")) %>% 
       mutate(x = lon,
              y = lat,
              island = ISLAND_CD, 
@@ -158,28 +202,67 @@ map = function(mode){
     seasonal_differnece = cbind(season_1[,1:4], seasonal_differnece)
     colnames(seasonal_differnece)[5] = "diff"
     
-    (p = seasonal_differnece %>% 
-        filter(region == "MHI") %>%
-        ggplot() +
-        geom_raster(aes(x, y, fill = diff)) +
-        # geom_tile(aes(x, y, fill = diff), width = 0.5, height = 0.5) + 
-        annotation_map(map_data("world"), fill = "gray50", colour = "gray20", size = 0.5) +
-        scale_fill_gradientn(colors = rev(ipcc_col), "", limits = c( max(abs(seasonal_differnece$diff))*-1,
-                                                                     max(abs(seasonal_differnece$diff)))) +
-        scale_fill_gradientn(colors = rev(ipcc_col), "") +
-        # scale_x_continuous(expand = c(-0.005, 15), "", limits = range(anom$x)) +
-        # scale_y_continuous(expand = c(-0.005, 15), "", limits = range(anom$y)) +
-        # coord_map("ortho", orientation = c(0, 180, 0)) + #normal
-        theme(axis.title = element_blank(),
-              axis.text = element_blank(),
-              axis.ticks = element_blank(),
-              legend.text = element_text(size = 6),
-              legend.position = "bottom",
-              legend.justification = c(1, 0)))
+    seasonal_differnece = seasonal_differnece %>% 
+      mutate(x = round(x, 1),
+             y = round(y, 1)) %>% 
+      group_by(x, y, island, region) %>% 
+      summarise(diff = mean(diff))
     
-    png(paste0("outputs/CWR_annual_map_v3_", percentile, ".png"), height = 6, width = 6, units = "in", res = 500)
-    print(p)
-    dev.off()
+    # (seasonal_differnece %>% 
+    #     filter(region == "MHI") %>%
+    #     ggplot() +
+    #     geom_raster(aes(x, y, fill = diff)) +
+    #     # geom_tile(aes(x, y, fill = diff), width = 0.5, height = 0.5) + 
+    #     annotation_map(map_data("world"), fill = "gray50", colour = "gray20", size = 0.5) +
+    #     scale_fill_gradientn(colors = rev(ipcc_col), "", limits = c( max(abs(seasonal_differnece$diff))*-1,
+    #                                                                  max(abs(seasonal_differnece$diff)))) +
+    #     scale_fill_gradientn(colors = rev(ipcc_col), "") +
+    #     # scale_x_continuous(expand = c(-0.005, 15), "", limits = range(anom$x)) +
+    #     # scale_y_continuous(expand = c(-0.005, 15), "", limits = range(anom$y)) +
+    #     # coord_map("ortho", orientation = c(0, 180, 0)) + #normal
+    #     theme(axis.title = element_blank(),
+    #           axis.text = element_blank(),
+    #           axis.ticks = element_blank(),
+    #           legend.text = element_text(size = 6),
+    #           legend.position = "bottom",
+    #           legend.justification = c(1, 0)))
+    
+    seasonal_differnece <- seasonal_differnece %>%
+      mutate(x = ifelse(x > 180, x - 360, x)) %>% 
+      st_as_sf(coords = c("x", "y"), crs = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+    
+    coordinates <- st_coordinates(seasonal_differnece %>% filter(region == "MHI") )
+    coords_df <- as.data.frame(coordinates)
+    mean_lat <- mean(coords_df$Y)
+    mean_lon <- mean(coords_df$X)
+    min_lat <- min(coords_df$Y)
+    max_lat <- max(coords_df$Y)
+    min_lon <- min(coords_df$X)
+    max_lon <- max(coords_df$X)
+    
+    map = ggmap::get_map(#location = c(mean_lon, mean_lat),
+      location =  c(left = min_lon, bottom = min_lat, right = max_lon, top = max_lat),
+      maptype = "satellite",
+      zoom = 7,
+      force = T)
+    
+    (ggmap(map) + 
+        geom_sf(data = seasonal_differnece %>% 
+                  filter(region == "MHI"),
+                aes(fill = diff), size = 4, shape = 22, inherit.aes = F) + 
+        scale_fill_gradientn(colors = rev(ipcc_col), name = "LEHI\nseasonal difference\n(Jul-Sep)-(Jan-Mar)") +
+        scale_y_continuous(limits = c(min_lat, max_lat), "") + 
+        scale_x_continuous(limits = c(min_lon, max_lon), "") + 
+        theme(legend.position = c(0.15, 0.25),
+              legend.background = element_blank(),
+              legend.box.background = element_blank(), 
+              legend.text = element_text(color = "white", face = "bold", size = 14), 
+              legend.title = element_text(color = "white", face = "bold", size = 16)) + 
+        annotate("text", x = max_lon, y = max_lat, label = "2015-2023", 
+                 hjust = 1, vjust = 1, color = "white", size = 6))
+    
+    ggsave(last_plot(), file = paste0("outputs/CRW_LEHI_map_seasonal_diff_", percentile, ".png"), height = 5, width = 8)
+    
     
   }
   
@@ -187,43 +270,82 @@ map = function(mode){
     
     #all periods
     annual = rbind(crw1, crw2, crw3, crw4)
+    
+    annual$lon = annual$x
+    annual$lat = annual$y
+    annual <- st_as_sf(x = annual, coords = c("x", "y"), crs = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0" )
+    annual <- st_intersection(annual, st_make_valid(isl))
+    annual <- annual %>% as.data.frame()
+    colnames(annual) = tolower(colnames(annual))
+    annual$x = annual$lon
+    annual$y = annual$lat
+    
     annual$sum = annual$sum/120
     annual$season = "Annual"
-    annual = annual[, c("x", "y", "sum", "source", "period", "season")]
+    annual = annual[, c("x", "y", "sum", "source", "period", "season", "region")]
     
     #seasonals
     anom = rbind(crw1, crw2, crw3, crw4)
-    season_1 = anom[,c("x", "y", "jan", "feb", "mar", "source", "period")]; season_1$season = "Jan-Mar"
-    season_2 = anom[,c("x", "y", "jul", "aug", "sep", "source", "period")]; season_2$season = "Jul-Sep"
+    
+    anom$lon = anom$x
+    anom$lat = anom$y
+    anom <- st_as_sf(x = anom, coords = c("x", "y"), crs = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0" )
+    anom <- st_intersection(anom, st_make_valid(isl))
+    anom = anom %>% as.data.frame()
+    
+    anom = anom %>% 
+      mutate(x = lon,
+             y = lat,
+             island = ISLAND_CD, 
+             region = Region) %>% 
+      select(x, y, 
+             jan, feb, mar, apr, may, jun, 
+             jul, aug, sep, oct, nov, dec, 
+             sum, source, period, island, region)
+    
+    season_1 = anom[,c("x", "y", "jan", "feb", "mar", "source", "period", "region")]; season_1$season = "Jan-Mar"
+    season_2 = anom[,c("x", "y", "jul", "aug", "sep", "source", "period", "region")]; season_2$season = "Jul-Sep"
     season_1$sum = rowSums(season_1[3:5])
     season_2$sum = rowSums(season_2[3:5])
-    season_1 = season_1[,c(1,2, 6:9)]
-    season_2 = season_2[,c(1,2, 6:9)]
+    season_1 = season_1[,c(1,2, 6:10)]
+    season_2 = season_2[,c(1,2, 6:10)]
     season = rbind(season_1, season_2)
     season$sum = season$sum/30
-    season = season[, c("x", "y", "sum", "source", "period", "season")]
+    season = season[, c("x", "y", "sum", "source", "period", "season", "region")]
     
-    anom = rbind(annual, season) %>% group_by(x, y, period, season) %>% summarise(sum = mean(sum))
+    anom = rbind(annual, season) %>% 
+      mutate(x = round(x, 1),
+             y = round(y, 1)) %>% 
+      group_by(x, y, period, season, region) %>% 
+      summarise(sum = mean(sum))
     
-    (p = ggplot(anom) + 
-        geom_tile(aes(x, y, fill = sum), width = 1, height = 1) + 
-        annotation_map(map_data("world"), fill = "gray50", colour = "gray20", size = 0.5) +
+    (anom %>%
+        filter(region == "MHI") %>%
+        filter(period %in% c("2015-2023")) %>%
+        filter(season %in% c("Jan-Mar", "Jul-Sep")) %>% 
+        ggplot() +
+        geom_raster(aes(x, y, fill = sum)) +
         scale_fill_gradientn(colors = rev(ipcc_col), "") +
-        # scale_x_continuous(expand = c(-0.005, 15), "", limits = range(anom$x)) +
-        # scale_y_continuous(expand = c(-0.005, 15), "", limits = range(anom$y)) +
-        # coord_fixed() +
-        # coord_map("ortho", orientation = c(0, 180, 0)) + #normal
-        facet_grid(season ~ period) +
-        theme(axis.title = element_blank(),
-              axis.text = element_blank(),
-              axis.ticks = element_blank(),
-              legend.position = "bottom",
-              legend.justification = c(1,0)))
-    
-    png(paste0("outputs/CRW_annual_map_v4_", percentile, ".png"), height = 7, width = 10, units = "in", res = 500)
-    print(p)
-    dev.off()
-    
+        coord_fixed() +
+        facet_grid(period ~ season) +
+        theme(
+          axis.title = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          legend.justification = c(1, 0),
+          panel.background = element_rect(fill = "transparent", colour = NA_character_), # Necessary to avoid drawing panel outline
+          panel.grid.major = element_blank(), # Get rid of major grid
+          panel.grid.minor = element_blank(), # Get rid of minor grid
+          plot.background = element_rect(fill = "transparent", colour = NA_character_), # Necessary to avoid drawing plot outline
+          legend.background = element_rect(fill = "transparent"),
+          legend.box.background = element_rect(fill = "transparent"),
+          legend.key = element_rect(fill = "transparent"),
+          legend.text = element_text(color = "white", face = "bold"), # Set legend text to white and bold
+          legend.title = element_text(color = "white", face = "bold")  # Set legend title to white and bold
+        ))
+
+ggsave(last_plot(), filename = "outputs/CRW_LEHI_map_combined.png",  bg = "transparent", width = 20, height = 10)
+
   }
   
 }

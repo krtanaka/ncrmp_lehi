@@ -75,15 +75,11 @@ percentile = 0.96667 #based on 30 years baseline (1985-2014)
 ### load area fraction time series results ###
 ##############################################
 
-region_list = c("American Samoa", 
-                "Guam", 
-                "Hawaii", 
-                "Howland and Baker islands", 
-                "Jarvis Island", 
-                "Johnston Atoll", 
-                "Northern Mariana Islands",
-                "Palmyra Atoll", 
-                "Wake Island",
+region_list = c("MARIAN", 
+                "MHI", 
+                "NWHI", 
+                "PRIA", 
+                "SAMOA",
                 "NCRMP")
 
 lehi_time <- vector("list", length(region_list))

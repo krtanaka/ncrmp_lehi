@@ -86,10 +86,10 @@ area <- over(latlon, shp)
 area = as.data.frame(area[,"Region"])
 colnames(area)[1] = "Region"
 df = cbind(area, df) %>% na.omit()
-crw_region_names = df[, c("Region", "x", "y")]
-df = df[ , -which(names(df) %in% "Region")]
 
 df$x = ifelse(df$x < 0, df$x + 360, df$x)
+crw_region_names = df[, c("Region", "x", "y")]
+df = df[ , -which(names(df) %in% "Region")]
 
 save(df, file = "outputs/CRW_SST_5km_coast.RData")
 save(crw_region_names, file = "outputs/CRW_Region_Names.RData")

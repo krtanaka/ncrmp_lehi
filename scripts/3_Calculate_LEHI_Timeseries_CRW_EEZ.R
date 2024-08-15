@@ -53,7 +53,7 @@ calculate_anomalies = function(region){
   
   # load("/mnt/ldrive/ktanaka/CRW_SST/CRW_SST.RData"); monthly_CRW = df
   # load("G:/SST/CRW_SST/CRW_SST.RData"); monthly_CRW = df
-  load("G:/SST/CRW_SST/CRW_SST_5km_coast.RData"); monthly_CRW = df
+  load("outputs/CRW_SST_5km_coast.RData"); monthly_CRW = df
   
   # set baseline Jan 1985 - Dec 2014
   Baseline <- monthly_CRW[,1:362]
