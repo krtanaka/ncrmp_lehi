@@ -24,6 +24,13 @@ region_list = c("American Samoa",
                 "Wake Island",
                 "NCRMP")
 
+region_list = c("MARIAN", 
+                "MHI", 
+                "NWHI", 
+                "PRIA", 
+                "SAMOA",
+                "NCRMP")
+
 lehi_time = NULL
 
 for (y in 1:length(region_list)) {
@@ -56,16 +63,7 @@ exceeded_times = df %>%
   dplyr::select(Year, region, y) %>% 
   subset(y > 0) 
 
-exceeded_times$region = factor(exceeded_times$region, levels = c("American Samoa", 
-                                                                 "Guam", 
-                                                                 "Hawaii", 
-                                                                 "Howland and Baker islands", 
-                                                                 "Jarvis Island", 
-                                                                 "Johnston Atoll", 
-                                                                 "Northern Mariana Islands",
-                                                                 "Palmyra Atoll", 
-                                                                 "Wake Island",
-                                                                 "NCRMP"))
+exceeded_times$region = factor(exceeded_times$region, levels = region_list)
 
 ipcc_col <- c(rgb(103, 0, 31, maxColorValue = 255, alpha = 255),
               rgb(178, 24, 43, maxColorValue = 255, alpha = 255),
@@ -91,16 +89,7 @@ exceeded_times  %>%
 
 all_year = data.frame(Year = seq(1985, 2023, by = 1))
 
-region_n = c("American Samoa", 
-             "Guam", 
-             "Hawaii", 
-             "Howland and Baker islands", 
-             "Jarvis Island", 
-             "Johnston Atoll", 
-             "Northern Mariana Islands",
-             "Palmyra Atoll", 
-             "Wake Island",
-             "NCRMP")
+region_n = region_list
 
 for (i in 1:length(region_n)) {
   
@@ -169,9 +158,7 @@ df$LaNina = ifelse(df$Year %in% LaNina, "Y", df$LaNina)
           legend.justification = c(-0.3,0.8)) + 
     labs(x = "", y = "Area fraction"))
 
-png("outputs/LEHI_Timeseries_v1_5km.png", height = 8, width = 12, units = "in", res = 500)
-print(p)
-dev.off()
+ggsave(last_plot(), file = "outputs/LEHI_Timeseries_v1_5km.png", height = 8, width = 12)
 
 df = df %>% group_by(Year, region) %>% summarise(year_sum = mean(year_sum))
 df$Year = as.numeric(df$Year)
@@ -186,18 +173,9 @@ df %>%
   summarise(sum = mean(year_sum)) %>% 
   mutate(percent = (sum/lag(sum)-1)*100)
 
-df$region = ifelse(df$region == "NCRMP", "Pacific NCRMP", df$region)
+# df$region = ifelse(df$region == "NCRMP", "Pacific NCRMP", df$region)
 
-df$region = factor(df$region, levels = c("Pacific NCRMP",
-                                         "American Samoa", 
-                                         "Guam", 
-                                         "Hawaii", 
-                                         "Howland and Baker islands", 
-                                         "Jarvis Island", 
-                                         "Johnston Atoll", 
-                                         "Northern Mariana Islands",
-                                         "Palmyra Atoll", 
-                                         "Wake Island"))
+df$region = factor(df$region, levels = region_list)
 
 (p = df %>% 
     # subset(region != "NCRMP") %>%
@@ -214,6 +192,4 @@ df$region = factor(df$region, levels = c("Pacific NCRMP",
     theme(legend.position = "none",
           axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)))
 
-png("outputs/LEHI_Timeseries_v2_5km.png", height = 8, width = 12, units = "in", res = 500)
-print(p)
-dev.off()
+ggsave(last_plot(), file = "outputs/LEHI_Timeseries_v2_5km.png", height = 8, width = 12)
