@@ -20,7 +20,9 @@ load("outputs/CRW_BAA_7daymax_5km_coast.RData"); df2 = df
 load("outputs/CRW_BH_5km_coast.RData"); df3 = df
 load("outputs/CRW_DHW_5km_coast.RData"); df4 = df
 
-common_columns <- intersect(names(df1), names(df4))
+common_columns <- intersect(names(df1), names(df2))
+common_columns <- intersect(names(df3), common_columns)
+common_columns <- intersect(names(df4), common_columns)
 
 df1 <- df1[, ..common_columns]
 df2 <- df2[, ..common_columns]
@@ -38,8 +40,11 @@ df_xy = rbind(df1, df2, df3, df4) %>%
 df_xy$mean <- rowMeans(df_xy[, -(1:5), with = FALSE])
 
 df_xy %>%
-  filter(region == "Hawaii") %>% 
+  filter(region == "MHI") %>% 
   filter(island == "HAW") %>% 
+  # filter(index == "BAA_7daymax") %>% 
+  # filter(index == "BH") %>% 
+  filter(index == "DHW") %>%
   ggplot(aes(x, y, fill = mean)) +  
   geom_point(shape = 21, size = 5, alpha = 0.8) + 
   scale_fill_gradientn(colors = matlab.like(100)) + 
@@ -62,7 +67,7 @@ df_time %>%
   .[, .(v = mean(v)), by = .(year, region, index)] %>%
   ggplot(aes(x = year, y = v, fill = index, group = index)) + 
   geom_line() +
-  geom_point(shape = 21, size = 5) + 
+  geom_point(shape = 21, size = 5, alpha = 0.6) + 
   facet_wrap(~region, scales = "free")
 
 rm(common_columns, df, df1, df2)
