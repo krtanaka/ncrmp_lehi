@@ -9,46 +9,13 @@ library(data.table)
 library(doParallel)
 library(raster)
 library(ggplot2)
+library(tidyr)
+library(lmtest)
+library(broom)
 
 rm(list = ls())
 
 select = dplyr::select
-
-# load regional DHW and BL values
-load("outputs/CRW_BAA_5km_coast.RData"); df1 = df
-load("outputs/CRW_BAA_7daymax_5km_coast.RData"); df2 = df
-load("outputs/CRW_BH_5km_coast.RData"); df3 = df
-load("outputs/CRW_DHW_5km_coast.RData"); df4 = df
-
-common_columns <- intersect(names(df1), names(df2))
-common_columns <- intersect(names(df3), common_columns)
-common_columns <- intersect(names(df4), common_columns)
-
-df1 <- df1[, ..common_columns]
-df2 <- df2[, ..common_columns]
-df3 <- df3[, ..common_columns]
-df4 <- df4[, ..common_columns]
-
-df1$index = "BAA"
-df2$index = "BAA_7daymax"
-df3$index = "BH"
-df4$index = "DHW"
-
-df_xy = rbind(df1, df2, df3, df4) %>% 
-  dplyr::select(last_col(), everything())
-
-df_xy$mean <- rowMeans(df_xy[, -(1:5), with = FALSE])
-
-df_xy %>%
-  filter(region == "MHI") %>% 
-  filter(island == "HAW") %>% 
-  # filter(index == "BAA_7daymax") %>% 
-  # filter(index == "BH") %>% 
-  filter(index == "DHW") %>%
-  ggplot(aes(x, y, fill = mean)) +  
-  geom_point(shape = 21, size = 5, alpha = 0.8) + 
-  scale_fill_gradientn(colors = matlab.like(100)) + 
-  facet_grid(~index, scales = "free")
 
 load("outputs/CRW_BAA_5km_coast_time.RData"); df1 = df_time
 load("outputs/CRW_BAA_7daymax_5km_coast_time.RData"); df2 = df_time
@@ -60,32 +27,30 @@ df2$index = "BAA_7daymax"
 df3$index = "BH"
 df4$index = "DHW"
 
-df_time = rbind(df1, df2, df3, df4) 
+clim = rbind(df1, df2, df3, df4) 
 
-df_time %>%
-  # filter(index == "BAA_7daymax") %>% 
-  .[, .(v = mean(v)), by = .(year, region, index)] %>%
-  ggplot(aes(x = year, y = v, fill = index, group = index)) + 
-  geom_line() +
-  geom_point(shape = 21, size = 5, alpha = 0.6) + 
-  facet_wrap(~region, scales = "free")
+# clim %>%
+#   .[, .(v = mean(v)), by = .(year, region, index)] %>%
+#   ggplot(aes(x = year, y = v, fill = region, group = region)) + 
+#   geom_line() +
+#   geom_point(shape = 21, size = 5, alpha = 0.5) + 
+#   facet_wrap(~index, scales = "free")
 
-rm(common_columns, df, df1, df2)
+rm(df1, df2, df3, df4, df_time)
 
 # load LEHI results
-
 percentile = 0.96667 #based on 30 years baseline (1985-2014)
 
 ##############################################
 ### load area fraction time series results ###
 ##############################################
 
-region_list = c("MARIAN", 
-                "MHI", 
+region_list = c("NCRMP",
                 "NWHI", 
+                "MHI", 
                 "PRIA", 
-                "SAMOA",
-                "NCRMP")
+                "MARIAN", 
+                "SAMOA")
 
 lehi_time <- vector("list", length(region_list))
 
@@ -110,127 +75,215 @@ lehi <- df %>%
 
 rownames(lehi) <- NULL
 
-rm(crw, df, lehi_time, percentile, region_list, y, yy_anom)
+rm(crw, df, lehi_time, percentile, y, yy_anom)
 
-table(df_time$region)
+table(clim$region)
 table(lehi$region)
 
-t1 = df_time %>% 
-  subset(region == "Guam") %>% 
-  # subset(index == "DHW") %>% 
-  subset(index == "BH") %>% 
-  group_by(year, month) %>% 
-  summarise(v = mean(v))
+colnames(clim) = tolower(colnames(clim))
+colnames(lehi) = tolower(colnames(lehi))
 
-t2 = lehi %>% 
-  subset(region == "Guam") %>% 
-  group_by(Year, Month) %>% 
-  summarise(v = mean(year_sum))
+indices = c("BAA", "BAA_7daymax", "BH", "DHW")
 
-# Step 1: Ensure the data is in Date format and merge
-library(dplyr)
-library(tidyr)
+plot_ncrmp = list()
+plot_region = list()
 
-# Convert t1 and t2 to date format
-t1 <- t1 %>%
-  mutate(date = as.Date(paste(year, month, "01", sep = "-"))) %>%
-  select(date, v)
+ipcc_col <- c(rgb(103, 0, 31, maxColorValue = 255, alpha = 255),
+              rgb(178, 24, 43, maxColorValue = 255, alpha = 255),
+              rgb(214, 96, 77, maxColorValue = 255, alpha = 255),
+              rgb(244, 165, 130, maxColorValue = 255, alpha = 255),
+              rgb(253, 219, 199, maxColorValue = 255, alpha = 255),
+              rgb(247, 247, 247, maxColorValue = 255, alpha = 255),
+              rgb(209, 229, 240, maxColorValue = 255, alpha = 255),
+              rgb(146, 197, 222, maxColorValue = 255, alpha = 255),
+              rgb(67, 147, 195, maxColorValue = 255, alpha = 255),
+              rgb(33, 102, 172, maxColorValue = 255, alpha = 255),
+              rgb(5, 48, 97, maxColorValue = 255, alpha = 255))
 
-t2 <- t2 %>%
-  mutate(date = as.Date(paste(Year, Month, "01", sep = "-"))) %>%
-  select(date, v)
+for (i in 1:length(indices)) {
+  
+  # i = 1
+  
+  ccf = NULL
+  
+  # plots = list()
+  
+  # par(mfrow = c(3, 2))
+  
+  for (r in 1:length(region_list)) {
+    
+    # r = 1
+    
+    if (region_list[r] == "NCRMP") {
+      
+      clim_i = clim %>% 
+        subset(index == indices[i]) %>%
+        group_by(year) %>%
+        filter(n_distinct(month) == 12) %>%
+        summarise(clim = mean(v))
+      
+      lehi_i = lehi %>% 
+        # group_by(year, month) %>%
+        group_by(year) %>%
+        filter(n_distinct(month) == 12) %>%
+        summarise(lehi = mean(year_sum))
+      
+    } else {
+      
+      clim_i = clim %>% 
+        subset(index == indices[i]) %>%
+        subset(region == region_list[r]) %>%
+        # group_by(year, month) %>%
+        group_by(year) %>%
+        filter(n_distinct(month) == 12) %>%
+        summarise(clim = mean(v))
+      
+      lehi_i = lehi %>% 
+        subset(region == region_list[r]) %>%
+        # group_by(year, month) %>%
+        group_by(year) %>%
+        filter(n_distinct(month) == 12) %>%
+        summarise(lehi = mean(year_sum))
+      
+    }
+    
+    # Convert t1 and t2 to date format
+    clim_i <- clim_i %>%
+      # mutate(date = as.Date(paste(year, month, "01", sep = "-"))) %>%
+      mutate(date = as.Date(paste(year, "01", "01", sep = "-"))) %>%
+      select(date, clim)
+    
+    lehi_i<- lehi_i %>%
+      # mutate(date = as.Date(paste(year, month, "01", sep = "-"))) %>%
+      mutate(date = as.Date(paste(year, "01", "01", sep = "-"))) %>%
+      select(date, lehi)
+    
+    # Merge the datasets
+    merged_data <- inner_join(clim_i, lehi_i, by = "date")
+    
+    # Calculate CCF
+    # ccf(merged_data$clim, merged_data$lehi, lag.max = 10, plot = T, main = region_list[r])
+    
+    n <- length(merged_data$clim)
+    threshold <- 2 / sqrt(n)
+    
+    ccf_data <- ccf(merged_data$clim, merged_data$lehi, lag.max = 10, plot = F)
+    
+    ccf_df <- data.frame(
+      lag = ccf_data$lag,
+      correlation = ccf_data$acf,
+      region = region_list[r],
+      significance_threshold = threshold
+    )
+    
+    # Optionally, add a column indicating whether the correlation is significant
+    ccf_df$significant <- abs(ccf_df$correlation) > ccf_df$significance_threshold
+    
+    ccf = rbind(ccf, ccf_df)
+    
+    # Use the Granger Causality Test to test for predictive causality.
+    
+    # Purpose: To test if one time series can predict another.
+    grangertest(clim ~ lehi, order = 1, data = merged_data)
+    grangertest(lehi ~ clim, order = 1, data = merged_data)
+    
+    # Calculate F-statistics for multiple lags
+    max_lag <- 10
+    
+    f_stats <- sapply(1:max_lag, function(lag) {
+      test_result <- grangertest(clim ~ lehi, order = lag, data = merged_data)
+      test_result$F[2]
+    })
+    
+    # Create data frame
+    f_stats_df <- data.frame(
+      lag = 1:max_lag,
+      f_stat = f_stats
+    )
+    
+    p1 = ggplot(f_stats_df, aes(x = lag, y = f_stat, fill = f_stat)) +
+      geom_line() +
+      geom_point(size = 5, shape = 21) +
+      labs(title = region_list[r],
+           x = "Lag",
+           y = "F-statistic")+
+      scale_x_continuous(breaks = 1:max_lag)
+    
+    # Calculate p-values for multiple lags
+    p_values <- sapply(1:max_lag, function(lag) {
+      test_result <- grangertest(clim ~ lehi, order = lag, data = merged_data)
+      broom::tidy(test_result)$p.value[2]
+    })
+    
+    # Create data frame
+    p_values_df <- data.frame(
+      lag = 1:max_lag,
+      p_value = p_values
+    )
+    
+    p2 = ggplot(p_values_df, aes(x = lag, y = p_value, fill = p_value)) +
+      geom_line() +
+      geom_point(size = 5, shape = 21) +
+      geom_hline(yintercept = 0.05, linetype = "dashed", color = "red") +
+      labs(title = "",
+           x = "Lag",
+           y = "p-value") +
+      scale_x_continuous(breaks = 1:max_lag)
+    
+    # p = p1 + p2
+    # 
+    # plots[[r]] <- p
+    
+  }
+  
+  ccf$region <- factor(ccf$region, levels = region_list)
+  
+  ccf_filtered <- ccf %>% filter(region == "NCRMP")
+  
+  # Add the plot with asterisks for significant correlations
+  p = ggplot(ccf_filtered, aes(x = lag, y = correlation, fill = correlation)) +
+    geom_hline(yintercept = 0, color = "black") +
+    geom_hline(yintercept = c(-2 / sqrt(nrow(merged_data)), 2 / sqrt(nrow(merged_data))), 
+               linetype = "dashed", color = "red") +
+    geom_bar(stat = "identity", colour = "black", show.legend = FALSE) +
+    scale_fill_gradientn(colors = rev(ipcc_col), "") +
+    ylim(-0.5, 1) + 
+    ggtitle(indices[i]) + 
+    labs(x = "lag (years)") + 
+    facet_wrap(~region, ncol = 1) + 
+    theme_minimal() +
+    geom_text(data = subset(ccf_filtered, significant), 
+              aes(label = "*"), 
+              size = 10,
+              vjust = -0.1, color = "red")
+  
+  plot_ncrmp[[i]] <- p
+  
+  ccf_filtered <- ccf %>% filter(region != "NCRMP")
+  
+  # Add the plot with asterisks for significant correlations
+  p = ggplot(ccf_filtered, aes(x = lag, y = correlation, fill = correlation)) +
+    geom_hline(yintercept = 0, color = "black") +
+    geom_hline(yintercept = c(-2 / sqrt(nrow(merged_data)), 2 / sqrt(nrow(merged_data))), 
+               linetype = "dashed", color = "red") +
+    geom_bar(stat = "identity", colour = "black", show.legend = FALSE) +
+    scale_fill_gradientn(colors = rev(ipcc_col), "") +
+    ylim(-0.5, 1) + 
+    ggtitle(indices[i]) + 
+    labs(x = "lag (years)") + 
+    facet_wrap(~region, ncol = 1) + 
+    theme_minimal() +
+    geom_text(data = subset(ccf_filtered, significant), 
+              aes(label = "*"), 
+              size = 10,
+              vjust = -0.1, color = "red")
+  
+  plot_region[[i]] <- p
+  
+}
 
-# Step 2: Merge the datasets
-merged_data <- inner_join(t1, t2, by = "date", suffix = c("_t1", "_t2"))
-
-# Step 3: Create lagged versions of t2
-merged_data <- merged_data %>%
-  mutate(lag1_t2 = lag(v_t2, 1),
-         lag2_t2 = lag(v_t2, 2),
-         lag3_t2 = lag(v_t2, 3))  # Add more lags as needed
-
-# Step 4: Correlation analysis
-correlations <- cor(merged_data$v_t1, merged_data[, c("lag1_t2", "lag2_t2", "lag3_t2")], use = "complete.obs")
-
-print(correlations)
-
-# Calculate CCF
-ccf_data <- ccf(merged_data$v_t1, merged_data$v_t2, lag.max = 10, plot = FALSE)
-
-# Create a data frame for ggplot
-ccf_df <- data.frame(
-  lag = ccf_data$lag,
-  correlation = ccf_data$acf
-)
-
-# Plot using ggplot2
-ggplot(ccf_df, aes(x = lag, y = correlation)) +
-  geom_bar(stat = "identity", fill = "steelblue") +
-  geom_hline(yintercept = 0, color = "black") +
-  geom_hline(yintercept = c(-2/sqrt(nrow(merged_data)), 2/sqrt(nrow(merged_data))), 
-             linetype = "dashed", color = "red") +
-  labs(title = "Cross-Correlation Function (CCF)",
-       x = "Lag",
-       y = "Correlation")
-
-# Step 5: Cross-Correlation Function (CCF)
-ccf(merged_data$v_t1, merged_data$v_t2, lag.max = 12, plot = F)
-
-# Use the Granger Causality Test to test for predictive causality.
-library(lmtest)
-# Purpose: To test if one time series can predict another.
-grangertest(v_t1 ~ v_t2, order = 1, data = merged_data)
-grangertest(v_t2 ~ v_t1, order = 1, data = merged_data)
-
-library(lmtest)
-library(broom)
-
-# Calculate F-statistics for multiple lags
-max_lag <- 12
-f_stats <- sapply(1:max_lag, function(lag) {
-  test_result <- grangertest(v_t1 ~ v_t2, order = lag, data = merged_data)
-  test_result$F[2]
-})
-
-# Create data frame
-f_stats_df <- data.frame(
-  lag = 1:max_lag,
-  f_stat = f_stats
-)
-
-# Plot using ggplot2
-ggplot(f_stats_df, aes(x = lag, y = f_stat, color = f_stat)) +
-  geom_line() +
-  geom_point(size = 5) +
-  labs(title = "Granger Causality F-statistics by Lag",
-       x = "Lag",
-       y = "F-statistic")+ 
-  scale_x_continuous(breaks = 1:max_lag) 
-
-library(lmtest)
-library(ggplot2)
-
-# Calculate p-values for multiple lags
-max_lag <- 12
-p_values <- sapply(1:max_lag, function(lag) {
-  test_result <- grangertest(v_t1 ~ v_t2, order = lag, data = merged_data)
-  broom::tidy(test_result)$p.value[2]
-})
-
-# Create data frame
-p_values_df <- data.frame(
-  lag = 1:max_lag,
-  p_value = p_values
-)
-
-# Plot using ggplot2
-ggplot(p_values_df, aes(x = lag, y = p_value)) +
-  geom_line(color = "steelblue") +
-  geom_point(color = "darkblue") +
-  # geom_hline(yintercept = 0.05, linetype = "dashed", color = "red") +
-  labs(title = "Granger Causality p-values by Lag",
-       x = "Lag",
-       y = "p-value") + 
-  scale_x_continuous(breaks = 1:max_lag)
-
-
+# BAA, BAA-7days, BH and DHW
+plot_ncrmp[[1]] + plot_ncrmp[[4]] 
+plot_ncrmp[[2]] + plot_ncrmp[[4]] 
+plot_ncrmp[[3]] + plot_ncrmp[[4]] 
+plot_region[[1]] + plot_region[[4]] 

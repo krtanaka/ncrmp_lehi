@@ -10,6 +10,8 @@ library(doParallel)
 library(raster)
 library(ggplot2)
 library(colorRamps)
+library(ggsci)
+library(patchwork)
 
 # Set up parallel processing
 cores <- detectCores()
@@ -80,7 +82,7 @@ for (v in c("DHW", "BAA_7daymax", "BAA", "BH")) {
   area <- over(latlon, eez)
   df <- cbind(as.data.table(area[,c("Territory1")]), df) %>% na.omit()
   colnames(df)[1] = "eez"
- 
+  
   save(df, file = paste0("outputs/CRW_", v, "_5km_coast.RData"))
   
   df_time <- foreach(i = 6:(ncol(df)), .combine = rbind, .packages = c("data.table")) %dopar% {
@@ -106,3 +108,51 @@ for (v in c("DHW", "BAA_7daymax", "BAA", "BH")) {
 # Stop parallel processing
 stopCluster(cl)
 beepr::beep(2)
+
+# load regional DHW and BL values
+load("outputs/CRW_BAA_5km_coast.RData"); df1 = df
+load("outputs/CRW_BAA_7daymax_5km_coast.RData"); df2 = df
+load("outputs/CRW_BH_5km_coast.RData"); df3 = df
+load("outputs/CRW_DHW_5km_coast.RData"); df4 = df
+
+common_columns <- intersect(names(df1), names(df2))
+common_columns <- intersect(names(df3), common_columns)
+common_columns <- intersect(names(df4), common_columns)
+
+df1 <- df1[, ..common_columns]
+df2 <- df2[, ..common_columns]
+df3 <- df3[, ..common_columns]
+df4 <- df4[, ..common_columns]
+
+df1$index = "BAA"
+df2$index = "BAA_7daymax"
+df3$index = "BH"
+df4$index = "DHW"
+
+df_xy = rbind(df1, df2, df3, df4) %>% 
+  dplyr::select(last_col(), everything())
+
+df_xy$mean <- rowMeans(df_xy[, -(1:5), with = FALSE])
+
+indexes <- c("BAA", "BAA_7daymax", "BH", "DHW")
+
+plots <- list()
+
+for (i in 1:length(indexes)) {
+  
+  p <- ggplot() +  
+    geom_spatial_point(data = df_xy %>% filter(index == indexes[i]), 
+                       aes(x, y, fill = mean), shape = 21, alpha = 0.7, crs = 4326) + 
+    scale_fill_gradientn(colors = matlab.like(100), "") +
+    annotation_map(map = map_data("world")) + 
+    coord_sf(crs = st_crs(4326)) + 
+    labs(x = "", y = "") + 
+    ggtitle(indexes[i])
+  
+  plots[[i]] <- p
+  
+}
+
+plots[[1]] + plots[[2]] + plots[[3]] + plots[[4]] + 
+  plot_layout(ncol = 2)
+
