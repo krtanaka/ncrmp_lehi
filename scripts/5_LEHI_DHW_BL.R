@@ -22,19 +22,23 @@ load("outputs/CRW_BAA_7daymax_5km_coast_time.RData"); df2 = df_time
 load("outputs/CRW_BH_5km_coast_time.RData"); df3 = df_time
 load("outputs/CRW_DHW_5km_coast_time.RData"); df4 = df_time
 
-df1$index = "BAA"
-df2$index = "BAA_7daymax"
-df3$index = "BH"
-df4$index = "DHW"
+df1$index = "Bleaching_Area_Alert"
+df2$index = "Bleaching_Area_Alert_7daymax"
+df3$index = "Bleaching_Hotspot"
+df4$index = "Degree_Heating_Week"
 
 clim = rbind(df1, df2, df3, df4) 
 
-# clim %>%
-#   .[, .(v = mean(v)), by = .(year, region, index)] %>%
-#   ggplot(aes(x = year, y = v, fill = region, group = region)) + 
-#   geom_line() +
-#   geom_point(shape = 21, size = 5, alpha = 0.5) + 
-#   facet_wrap(~index, scales = "free")
+clim %>%
+  .[, .(v = mean(v)), by = .(year, region, index)] %>%
+  subset(index %in% c("Bleaching_Area_Alert", "Degree_Heating_Week")) %>%
+  ggplot(aes(x = year, y = v, fill = region, group = region)) +
+  geom_line() +
+  geom_point(shape = 21, size = 5, alpha = 0.8) +
+  scale_fill_discrete("") + 
+  facet_wrap(~index, scales = "free")
+
+ggsave(last_plot(), file = "outputs/climate_indices.png")
 
 rm(df1, df2, df3, df4, df_time)
 
@@ -83,7 +87,7 @@ table(lehi$region)
 colnames(clim) = tolower(colnames(clim))
 colnames(lehi) = tolower(colnames(lehi))
 
-indices = c("BAA", "BAA_7daymax", "BH", "DHW")
+indices = c("Bleaching_Area_Alert", "Bleaching_Area_Alert_7daymax", "Bleaching_Hotspot", "Degree_Heating_Week")
 
 plot_ncrmp = list()
 plot_region = list()
@@ -284,6 +288,10 @@ for (i in 1:length(indices)) {
 
 # BAA, BAA-7days, BH and DHW
 plot_ncrmp[[1]] + plot_ncrmp[[4]] 
+ggsave(last_plot(), file = "outputs/ccf_BA_DHW_NCRMP.png")
+
 plot_ncrmp[[2]] + plot_ncrmp[[4]] 
 plot_ncrmp[[3]] + plot_ncrmp[[4]] 
+
 plot_region[[1]] + plot_region[[4]] 
+ggsave(last_plot(), file = "outputs/ccf_BA_DHW_Region.png", width = 8, height = 10)

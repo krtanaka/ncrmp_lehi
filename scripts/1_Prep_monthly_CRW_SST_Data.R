@@ -15,6 +15,9 @@ library(dplyr)
 library(readr)
 library(doParallel)
 library(data.table)
+library(patchwork)
+library(tidyr)
+library(ggplot2)
 
 # cores = detectCores()-2
 # registerDoParallel(cores = cores)
@@ -51,9 +54,9 @@ df <- foreach(i = 1:468, .combine = cbind, .packages = c("terra", "dplyr", "rast
   colnames(df_i)[3] <- paste0("X", substring(nc_list_cw[i], 54, 59))
   
   if (i != 1) {
-  df_i = left_join(base_latlon, df_i)
-  df_i = df_i[,3] %>% as.data.frame()
-  colnames(df_i)[1] <- paste0("X", substring(nc_list_cw[i], 54, 59))
+    df_i = left_join(base_latlon, df_i)
+    df_i = df_i[,3] %>% as.data.frame()
+    colnames(df_i)[1] <- paste0("X", substring(nc_list_cw[i], 54, 59))
   }
   
   df_i
@@ -93,3 +96,65 @@ df = df[ , -which(names(df) %in% "Region")]
 
 save(df, file = "outputs/CRW_SST_5km_coast.RData")
 save(crw_region_names, file = "outputs/CRW_Region_Names.RData")
+
+#plot
+load("outputs/CRW_SST_5km_coast.RData")
+load("outputs/CRW_Region_Names.RData")
+
+df = left_join(crw_region_names, df)
+df$mean = rowMeans(df[,3:470])
+
+plots = list()
+
+third_region <- unique(df$Region)[3]
+
+for (r in unique(df$Region)) {
+  
+  p = df %>% 
+    filter(Region == r) %>%  
+    ggplot(aes(x, y, fill = mean, color = mean)) + 
+    geom_point(shape = 22, alpha = 0.8, show.legend = r == third_region) +  
+    scale_color_gradientn(colors = matlab.like(100), name = "deg C", limits = c(23.35, 29.13)) + 
+    scale_fill_gradientn(colors = matlab.like(100), name = "deg C", limits = c(23.35, 29.13)) + 
+    coord_fixed() + 
+    labs(x = "", y = "") + 
+    ggtitle(r) 
+    # ggdark::dark_theme_classic()
+  
+  plots[[r]] = p 
+}
+
+plots[[5]] + (plots[[1]] / plots[[2]] / plots[[4]]) + plots[[3]]
+
+ggsave(last_plot(), file = "outputs/crw_sst_map.png", width = 15, height = 10, bg = "transparent")
+
+load("G:/SST/CRW_SST/CRW_SST_5km_coast.RData")
+df = left_join(crw_region_names, df)
+
+# Reshape the data from wide to long format, ensuring only the date columns are selected
+date_columns <- grep("^X\\d+", names(df), value = TRUE)
+
+df_long <- df %>%
+  pivot_longer(cols = all_of(date_columns), 
+               names_to = "Date", 
+               values_to = "Value") %>%
+  mutate(Date = as.Date(paste0(substr(Date, 2, 7), "01"), format = "%Y%m%d")) %>%
+  mutate(Year = format(Date, "%Y"))  # Extract year from Date
+
+# Aggregate by Region and Year
+df_aggregated <- df_long %>%
+  group_by(Region, Year) %>%
+  summarize(MeanValue = mean(Value, na.rm = TRUE)) %>%
+  ungroup()
+
+
+# Plot the time series by region
+ggplot(df_aggregated, aes(x = as.numeric(Year), y = MeanValue, fill = MeanValue)) +
+  geom_line(color = "gray20") +
+  geom_point(shape = 21, size = 5, alpha = 0.8) + 
+  scale_fill_gradientn(colors = matlab.like(100), "SST") + 
+  facet_wrap(~ Region, scales = "free_y", ncol = 5) +
+  labs(x = "", y = "SST") 
+  # ggdark::dark_theme_classic()
+
+ggsave(last_plot(), file = "outputs/crw_sst_time.png", width = 15, height = 8, bg = "transparent")

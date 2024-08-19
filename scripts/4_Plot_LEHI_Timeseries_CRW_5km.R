@@ -158,7 +158,7 @@ df$LaNina = ifelse(df$Year %in% LaNina, "Y", df$LaNina)
           legend.justification = c(-0.3,0.8)) + 
     labs(x = "", y = "Area fraction"))
 
-ggsave(last_plot(), file = "outputs/LEHI_Timeseries_v1_5km.png", height = 8, width = 12)
+ggsave(last_plot(), file = "outputs/LEHI_Timeseries_v1_5km.png", height = 6, width = 10)
 
 df = df %>% group_by(Year, region) %>% summarise(year_sum = mean(year_sum))
 df$Year = as.numeric(df$Year)

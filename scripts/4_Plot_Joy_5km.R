@@ -15,6 +15,8 @@ library(patchwork)
 
 rm(list = ls())
 
+select = dplyr::select
+
 isl_names <- read_csv("data/island_name_code.csv") %>%
   select(Island_Code, Island) %>% 
   setNames(c("UNIT", "Island")) %>%
@@ -273,7 +275,7 @@ rank_joy = function(region){
           # panel.grid.minor.x = element_blank(),
           # panel.grid.major.y = element_blank(),
           panel.grid.minor.y = element_blank()
-          )
+    )
   
   print(p)
   if (region == "region") ggsave(last_plot(), file = paste0("outputs/joy_", region, "_", percentile, ".png"), height = 5, width = 6, units = "in")
@@ -342,34 +344,24 @@ ncrmp %>%
         # panel.grid.minor.y = element_blank(),
         legend.position = "none")
 
+ggsave(last_plot(), file = "outputs/crw_joy_5km_2015-2024.png", height = 8, width = 10, bg = "transparent")
+
+
 set.seed(2024)
 ncrmp %>%
-  subset(period %in% c("1985-1994", "2015-2023")) %>%
-  group_by(UNIT) %>% 
-  mutate(med_sum = median(sum)) %>% 
-  ggplot(aes(x = `sum`, y = reorder(UNIT, med_sum), fill = period)) +
+  # subset(period %in% c("1985-1994", "2015-2023")) %>%
+  ggplot(aes(x = `sum`, y = factor(UNIT, levels = sort(unique(UNIT))), fill = period)) +
   geom_density_ridges_gradient(
-    # bandwidth = 0.005,
-    # alpha = 0.1,
+    bandwidth = 0.01,
     color = "black",
-    scale = 2,
-    jittered_points = T,
-    position = position_points_jitter(width = 0.05, height = 0),
-    # point_shape = "|",
-    point_size = 2,
-    point_alpha = 0.1,
-    quantile_lines = T,
-    vline_color = c("green"),
-    quantile_fun = median
   ) +
-  # scale_fill_gradientn(colors = rev(ipcc_col), "") +
+  scale_fill_viridis_d("") +
   ylab(NULL) + xlab(NULL) +
-  scale_y_discrete(expand = c(1, 0)) +
   theme(axis.text.y = element_text(size = 10),
         panel.background = element_blank(),
-         legend.position = "none")
+        legend.position = "top")
 
-ggsave(last_plot(), file = paste0("outputs/ncrmp.", percentile, "_", Sys.Date(), "_a.png"), width = 6, height = 6)
+ggsave(last_plot(), file = paste0("outputs/ncrmp.", percentile, "_", Sys.Date(), "_a.png"), height = 8, width = 10, bg = "transparent")
 
 ncrmp = ncrmp %>% 
   subset(period %in% c("2015-2023")) %>% 
@@ -389,16 +381,16 @@ ncrmp_sub = ncrmp_sub %>% group_by(UNIT) %>% mutate(m = median(sum)) %>% arrange
 ncrmp_sub = ncrmp_sub[,c("UNIT", "sum")]; ncrmp_sub = as.data.frame(ncrmp_sub); ncrmp_sub = ncrmp_sub[1:2]; ncrmp_sub$class = "ncrmp"
 
 ncrmp_sub %>% 
-    mutate(UNIT = forcats::fct_reorder(UNIT, sum)) %>%
-    ggplot(aes(x = sum, y = UNIT, fill = UNIT)) +
-    geom_joy(scale = 3, alpha = 0.8, show.legend = F) +
-    theme_joy(grid = F) +
-    scale_y_discrete(expand = c(0.05, 0)) + # will generally have to set the `expand` option
-    # scale_x_continuous(limits = c(0, 1), expand = c(0, 0), breaks = c(0,0.5, 1)) +
-    scale_fill_cyclical(values = ipcc_temp_expand(length(unique(ncrmp_sub$UNIT)))) +
-    ylab(NULL) + xlab(NULL) +
-    # coord_fixed(ratio = 0.05) + 
-    theme(axis.text.y = element_text(size = 10),
-          legend.position = "none")
+  mutate(UNIT = forcats::fct_reorder(UNIT, sum)) %>%
+  ggplot(aes(x = sum, y = UNIT, fill = UNIT)) +
+  geom_joy(scale = 3, alpha = 0.8, show.legend = F) +
+  theme_joy(grid = F) +
+  scale_y_discrete(expand = c(0.05, 0)) + # will generally have to set the `expand` option
+  # scale_x_continuous(limits = c(0, 1), expand = c(0, 0), breaks = c(0,0.5, 1)) +
+  scale_fill_cyclical(values = ipcc_temp_expand(length(unique(ncrmp_sub$UNIT)))) +
+  ylab(NULL) + xlab(NULL) +
+  # coord_fixed(ratio = 0.05) + 
+  theme(axis.text.y = element_text(size = 10),
+        legend.position = "none")
 # labs(tag = "(c) Exclusive Economic Zone"))
-ggsave(last_plot(), file = paste0("outputs/ncrmp.", percentile, "_", Sys.Date(), "_b.png"), width = 6, height = 6)
+ggsave(last_plot(), file = paste0("outputs/ncrmp.", percentile, "_", Sys.Date(), "_b.png"), height = 8, width = 10, bg = "transparent")

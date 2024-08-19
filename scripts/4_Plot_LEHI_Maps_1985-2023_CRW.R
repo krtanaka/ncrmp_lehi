@@ -15,6 +15,8 @@ library(ggdark)
 
 rm(list = ls())
 
+select = dplyr::select
+
 percentile = 0.96667 #based on 30 years baseline (1984-2014)
 
 period = c("1985-1994", "1995_2004", "2005-2014", "2015-2023")
@@ -263,7 +265,6 @@ map = function(mode){
     
     ggsave(last_plot(), file = paste0("outputs/CRW_LEHI_map_seasonal_diff_", percentile, ".png"), height = 5, width = 8)
     
-    
   }
   
   if (mode == "combine") {
@@ -321,13 +322,14 @@ map = function(mode){
     
     (anom %>%
         filter(region == "MHI") %>%
-        filter(period %in% c("2015-2023")) %>%
-        filter(season %in% c("Jan-Mar", "Jul-Sep")) %>% 
+        # filter(region == "MARIAN") %>%
+        # filter(period %in% c("2015-2023")) %>%
+        # filter(season %in% c("Jan-Mar", "Jul-Sep")) %>% 
         ggplot() +
-        geom_raster(aes(x, y, fill = sum)) +
+        geom_raster(aes(x, y, fill = sum), color = "gray20") +
         scale_fill_gradientn(colors = rev(ipcc_col), "") +
         coord_fixed() +
-        facet_grid(period ~ season) +
+        facet_grid(season ~ period) +
         theme(
           axis.title = element_blank(),
           axis.text = element_blank(),
@@ -343,9 +345,9 @@ map = function(mode){
           legend.text = element_text(color = "white", face = "bold"), # Set legend text to white and bold
           legend.title = element_text(color = "white", face = "bold")  # Set legend title to white and bold
         ))
-
-ggsave(last_plot(), filename = "outputs/CRW_LEHI_map_combined.png",  bg = "transparent", width = 20, height = 10)
-
+    
+    ggsave(last_plot(), filename = "outputs/CRW_LEHI_map_combined.png",  bg = "transparent", width = 10, height = 5)
+    
   }
   
 }
