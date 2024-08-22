@@ -310,10 +310,10 @@ ncrmp %>%
   mutate(med_sum = median(sum)) %>% 
   ggplot(aes(x = `sum`, y = reorder(UNIT, med_sum), fill = stat(x))) +
   geom_density_ridges_gradient(
-    # bandwidth = 0.005,
+    bandwidth = 0.01,
     alpha = 0.8,
     color = "black",
-    scale = 2,
+    scale = 3,
     jittered_points = T,
     position = position_points_jitter(width = 0.05, height = 0),
     # point_shape = "|",
@@ -344,8 +344,8 @@ ncrmp %>%
         # panel.grid.minor.y = element_blank(),
         legend.position = "none")
 
-ggsave(last_plot(), file = "outputs/crw_joy_5km_2015-2024.png", height = 8, width = 10, bg = "transparent")
-
+ggsave(last_plot(), file = "outputs/crw_joy_5km_2015-2024.png", height = 8, width = 7, bg = "transparent")
+ggsave(last_plot(), file = "outputs/crw_joy_5km_2015-2024.png", height = 4, width = 3.5, bg = "transparent")
 
 set.seed(2024)
 ncrmp %>%

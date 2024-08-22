@@ -148,9 +148,10 @@ map = function(mode){
       location =  c(left = min_lon, bottom = min_lat, right = max_lon, top = max_lat),
       maptype = "satellite",
       zoom = 7,
-      force = T)
+      force = T, 
+      color = "bw")
     
-    (ggmap(map) + 
+    (ggmap(map, darken = c(0.5, "black")) + 
         geom_sf(data = anom_i %>% 
                   filter(region == "MHI") %>%
                   filter(period %in% c("2015-2023")),
@@ -246,16 +247,17 @@ map = function(mode){
       location =  c(left = min_lon, bottom = min_lat, right = max_lon, top = max_lat),
       maptype = "satellite",
       zoom = 7,
-      force = T)
+      force = T,
+      color = "bw")
     
-    (ggmap(map) + 
+    (ggmap(map, darken = c(0.5, "black")) + 
         geom_sf(data = seasonal_differnece %>% 
                   filter(region == "MHI"),
                 aes(fill = diff), size = 4, shape = 22, inherit.aes = F) + 
         scale_fill_gradientn(colors = rev(ipcc_col), name = "LEHI\nseasonal difference\n(Jul-Sep)-(Jan-Mar)") +
         scale_y_continuous(limits = c(min_lat, max_lat), "") + 
         scale_x_continuous(limits = c(min_lon, max_lon), "") + 
-        theme(legend.position = c(0.15, 0.25),
+        theme(legend.position = c(0.18, 0.25),
               legend.background = element_blank(),
               legend.box.background = element_blank(), 
               legend.text = element_text(color = "white", face = "bold", size = 14), 
@@ -320,33 +322,46 @@ map = function(mode){
       group_by(x, y, period, season, region) %>% 
       summarise(sum = mean(sum))
     
-    (anom %>%
-        filter(region == "MHI") %>%
-        # filter(region == "MARIAN") %>%
-        # filter(period %in% c("2015-2023")) %>%
-        # filter(season %in% c("Jan-Mar", "Jul-Sep")) %>% 
-        ggplot() +
-        geom_raster(aes(x, y, fill = sum), color = "gray20") +
-        scale_fill_gradientn(colors = rev(ipcc_col), "") +
-        coord_fixed() +
-        facet_grid(season ~ period) +
-        theme(
-          axis.title = element_blank(),
-          axis.text = element_blank(),
-          axis.ticks = element_blank(),
-          legend.justification = c(1, 0),
-          panel.background = element_rect(fill = "transparent", colour = NA_character_), # Necessary to avoid drawing panel outline
-          panel.grid.major = element_blank(), # Get rid of major grid
-          panel.grid.minor = element_blank(), # Get rid of minor grid
-          plot.background = element_rect(fill = "transparent", colour = NA_character_), # Necessary to avoid drawing plot outline
-          legend.background = element_rect(fill = "transparent"),
-          legend.box.background = element_rect(fill = "transparent"),
-          legend.key = element_rect(fill = "transparent"),
-          legend.text = element_text(color = "white", face = "bold"), # Set legend text to white and bold
-          legend.title = element_text(color = "white", face = "bold")  # Set legend title to white and bold
-        ))
+    anom <- anom %>%
+      mutate(x = ifelse(x > 180, x - 360, x)) %>% 
+      st_as_sf(coords = c("x", "y"), crs = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
     
-    ggsave(last_plot(), filename = "outputs/CRW_LEHI_map_combined.png",  bg = "transparent", width = 10, height = 5)
+    (ggmap(map, darken = c(0.5, "black")) + 
+        geom_sf(data = anom %>% 
+                  filter(region == "MHI"),
+                aes(fill = sum), shape = 22, inherit.aes = F) + 
+        scale_fill_gradientn(colors = rev(ipcc_col), name = "LEHI") +
+        scale_y_continuous(limits = c(min_lat, max_lat), "") +
+        scale_x_continuous(limits = c(min_lon, max_lon), "") +
+        facet_grid(season ~ period))
+    
+    # (anom %>%
+    #     filter(region == "MHI") %>%
+    #     # filter(region == "MARIAN") %>%
+    #     # filter(period %in% c("2015-2023")) %>%
+    #     # filter(season %in% c("Jan-Mar", "Jul-Sep")) %>% 
+    #     ggplot() +
+    #     geom_raster(aes(x, y, fill = sum), color = "gray20") +
+    #     scale_fill_gradientn(colors = rev(ipcc_col), "") +
+    #     coord_fixed() +
+    #     facet_grid(season ~ period) +
+    #     theme(
+    #       axis.title = element_blank(),
+    #       axis.text = element_blank(),
+    #       axis.ticks = element_blank(),
+    #       legend.justification = c(1, 0),
+    #       panel.background = element_rect(fill = "transparent", colour = NA_character_), # Necessary to avoid drawing panel outline
+    #       panel.grid.major = element_blank(), # Get rid of major grid
+    #       panel.grid.minor = element_blank(), # Get rid of minor grid
+    #       plot.background = element_rect(fill = "transparent", colour = NA_character_), # Necessary to avoid drawing plot outline
+    #       legend.background = element_rect(fill = "transparent"),
+    #       legend.box.background = element_rect(fill = "transparent"),
+    #       legend.key = element_rect(fill = "transparent"),
+    #       legend.text = element_text(color = "white", face = "bold"), # Set legend text to white and bold
+    #       legend.title = element_text(color = "white", face = "bold")  # Set legend title to white and bold
+    #     ))
+    
+    ggsave(last_plot(), filename = "outputs/CRW_LEHI_map_combined.png",  bg = "transparent", width = 12, height = 6)
     
   }
   

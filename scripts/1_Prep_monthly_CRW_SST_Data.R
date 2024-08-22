@@ -101,8 +101,37 @@ save(crw_region_names, file = "outputs/CRW_Region_Names.RData")
 load("outputs/CRW_SST_5km_coast.RData")
 load("outputs/CRW_Region_Names.RData")
 
+ggmap::register_google("AIzaSyDpirvA5gB7bmbEbwB1Pk__6jiV4SXAEcY")
+
 df = left_join(crw_region_names, df)
 df$mean = rowMeans(df[,3:470])
+
+df_i <- df %>%
+  select(x, y, mean) %>% 
+  filter(x >= 201.5 & x <= 202.5 & y >= 21.2 & y <= 21.75) %>% 
+  mutate(x = ifelse(x > 180, x - 360, x)) %>% 
+  st_as_sf(coords = c("x", "y"), crs = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
+
+coordinates <- st_coordinates(df_i)
+coords_df <- as.data.frame(coordinates)
+min_lat <- min(coords_df$Y)
+max_lat <- max(coords_df$Y)
+min_lon <- min(coords_df$X)
+max_lon <- max(coords_df$X)
+
+map = ggmap::get_map(#location = c(mean_lon, mean_lat),
+  location =  c(left = min_lon, bottom = min_lat, right = max_lon, top = max_lat),
+  maptype = "satellite",
+  zoom = 10,
+  force = T, 
+  color = "bw")
+
+(ggmap(map, darken = c(0.1, "black")) + 
+    geom_sf(data = df_i, aes(fill = mean), size = 10, shape = 22, inherit.aes = F) + 
+    scale_color_gradientn(colors = matlab.like(100), name = "deg C") + 
+    scale_fill_gradientn(colors = matlab.like(100), name = "deg C"))
+
+ggsave(last_plot(), file = "outputs/crw_sst_Oahu.png", width = 6, height = 6, bg = "transparent")
 
 plots = list()
 
@@ -110,25 +139,27 @@ third_region <- unique(df$Region)[3]
 
 for (r in unique(df$Region)) {
   
-  p = df %>% 
-    filter(Region == r) %>%  
-    ggplot(aes(x, y, fill = mean, color = mean)) + 
-    geom_point(shape = 22, alpha = 0.8, show.legend = r == third_region) +  
+  p =  df %>% 
+    filter(Region == r) %>% 
+    select(x, y, mean) %>% 
+    ggplot(aes(x, y, fill = mean)) + 
+    geom_point(shape = 21, show.legend = r == third_region) + 
     scale_color_gradientn(colors = matlab.like(100), name = "deg C", limits = c(23.35, 29.13)) + 
     scale_fill_gradientn(colors = matlab.like(100), name = "deg C", limits = c(23.35, 29.13)) + 
-    coord_fixed() + 
     labs(x = "", y = "") + 
-    ggtitle(r) 
-    # ggdark::dark_theme_classic()
+    coord_fixed() + 
+    ggtitle(r)
+  
+  print(p)
+  ggsave(last_plot(), file = paste0("outputs/crw_sst_map_", r, ".png"), width = 6)
   
   plots[[r]] = p 
 }
 
 plots[[5]] + (plots[[1]] / plots[[2]] / plots[[4]]) + plots[[3]]
 
-ggsave(last_plot(), file = "outputs/crw_sst_map.png", width = 15, height = 10, bg = "transparent")
+ggsave(last_plot(), file = "outputs/crw_sst_map.png", width = 12, height = 6, bg = "transparent")
 
-load("G:/SST/CRW_SST/CRW_SST_5km_coast.RData")
 df = left_join(crw_region_names, df)
 
 # Reshape the data from wide to long format, ensuring only the date columns are selected
@@ -147,14 +178,23 @@ df_aggregated <- df_long %>%
   summarize(MeanValue = mean(Value, na.rm = TRUE)) %>%
   ungroup()
 
+library(grid) # for unit()
 
-# Plot the time series by region
+# Calculate slopes for each region
+slope_df <- df_aggregated %>%
+  group_by(Region) %>%
+  summarize(slope = coef(lm(MeanValue ~ as.numeric(Year)))[2])
+
 ggplot(df_aggregated, aes(x = as.numeric(Year), y = MeanValue, fill = MeanValue)) +
+  geom_smooth(method = "lm", se = T, linetype = "dashed", color = "gray10") +
   geom_line(color = "gray20") +
   geom_point(shape = 21, size = 5, alpha = 0.8) + 
-  scale_fill_gradientn(colors = matlab.like(100), "SST") + 
-  facet_wrap(~ Region, scales = "free_y", ncol = 5) +
-  labs(x = "", y = "SST") 
-  # ggdark::dark_theme_classic()
+  scale_fill_gradientn(colors = matlab.like(100), name = "") + 
+  facet_wrap(~ Region, scales = "free_y", ncol = 3) +
+  labs(x = "", y = "SST (°C)") +
+  geom_text(data = slope_df, aes(x = -Inf, y = Inf, 
+                                 label = paste0(round(slope, 3), " °C year⁻¹")), 
+            hjust = -0.1, vjust = 1.2, size = 3, color = "black", inherit.aes = FALSE) + 
+  theme(legend.position = "none")
 
-ggsave(last_plot(), file = "outputs/crw_sst_time.png", width = 15, height = 8, bg = "transparent")
+ggsave(last_plot(), file = "outputs/crw_sst_time.png", width = 10, height = 7, bg = "transparent")

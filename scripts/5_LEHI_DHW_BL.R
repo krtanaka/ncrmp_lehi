@@ -33,12 +33,13 @@ clim %>%
   .[, .(v = mean(v)), by = .(year, region, index)] %>%
   subset(index %in% c("Bleaching_Area_Alert", "Degree_Heating_Week")) %>%
   ggplot(aes(x = year, y = v, fill = region, group = region)) +
-  geom_line() +
+  geom_line(alpha = 0.5) +
   geom_point(shape = 21, size = 5, alpha = 0.8) +
-  scale_fill_discrete("") + 
-  facet_wrap(~index, scales = "free")
+  scale_fill_viridis_d("") + 
+  facet_wrap(~index, scales = "free") + 
+  theme(axis.title = element_blank())
 
-ggsave(last_plot(), file = "outputs/climate_indices.png")
+ggsave(last_plot(), file = "outputs/climate_indices.png", width = 10, height = 5)
 
 rm(df1, df2, df3, df4, df_time)
 
@@ -288,10 +289,13 @@ for (i in 1:length(indices)) {
 
 # BAA, BAA-7days, BH and DHW
 plot_ncrmp[[1]] + plot_ncrmp[[4]] 
-ggsave(last_plot(), file = "outputs/ccf_BA_DHW_NCRMP.png")
+ggsave(last_plot(), file = "outputs/ccf_BA_DHW_NCRMP.png", width = 10, height = 6)
 
 plot_ncrmp[[2]] + plot_ncrmp[[4]] 
+ggsave(last_plot(), file = "outputs/ccf_BA_DHW_NCRMP.png", width = 10, height = 6)
+
 plot_ncrmp[[3]] + plot_ncrmp[[4]] 
+ggsave(last_plot(), file = "outputs/ccf_BA_DHW_NCRMP.png", width = 10, height = 6)
 
 plot_region[[1]] + plot_region[[4]] 
-ggsave(last_plot(), file = "outputs/ccf_BA_DHW_Region.png", width = 8, height = 10)
+ggsave(last_plot(), file = "outputs/ccf_BA_DHW_Region.png", width = 10, height = 12)

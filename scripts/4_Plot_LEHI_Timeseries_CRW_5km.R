@@ -192,4 +192,4 @@ df$region = factor(df$region, levels = region_list)
     theme(legend.position = "none",
           axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)))
 
-ggsave(last_plot(), file = "outputs/LEHI_Timeseries_v2_5km.png", height = 8, width = 12)
+ggsave(last_plot(), file = "outputs/LEHI_Timeseries_v2_5km.png", height = 6, width = 9)
