@@ -105,6 +105,8 @@ ipcc_col <- c(rgb(103, 0, 31, maxColorValue = 255, alpha = 255),
               rgb(33, 102, 172, maxColorValue = 255, alpha = 255),
               rgb(5, 48, 97, maxColorValue = 255, alpha = 255))
 
+detrend = T
+
 for (i in 1:length(indices)) {
   
   # i = 1
@@ -171,6 +173,13 @@ for (i in 1:length(indices)) {
     
     n <- length(merged_data$clim)
     threshold <- 2 / sqrt(n)
+    
+    if (detrend == T) {
+      
+      merged_data$clim <- resid(lm(clim ~ date, data = merged_data))
+      merged_data$lehi <- resid(lm(lehi ~ date, data = merged_data))
+      
+    }
     
     ccf_data <- ccf(merged_data$clim, merged_data$lehi, lag.max = 10, plot = F)
     
@@ -287,15 +296,18 @@ for (i in 1:length(indices)) {
   
 }
 
-# BAA, BAA-7days, BH and DHW
+# Define a suffix based on the detrend condition
+suffix <- if (detrend) "_detrend" else ""
+
+# Save plots with conditional filenames
 plot_ncrmp[[1]] + plot_ncrmp[[4]] 
-ggsave(last_plot(), file = "outputs/ccf_BA_DHW_NCRMP.png", width = 10, height = 6)
+ggsave(last_plot(), file = paste0("outputs/ccf_BA_DHW_NCRMP", suffix, ".png"), width = 10, height = 6)
 
 plot_ncrmp[[2]] + plot_ncrmp[[4]] 
-ggsave(last_plot(), file = "outputs/ccf_BA_DHW_NCRMP.png", width = 10, height = 6)
+ggsave(last_plot(), file = paste0("outputs/ccf_BA7days_DHW_NCRMP", suffix, ".png"), width = 10, height = 6)
 
 plot_ncrmp[[3]] + plot_ncrmp[[4]] 
-ggsave(last_plot(), file = "outputs/ccf_BA_DHW_NCRMP.png", width = 10, height = 6)
+ggsave(last_plot(), file = paste0("outputs/ccf_BAHS_DHW_NCRMP", suffix, ".png"), width = 10, height = 6)
 
 plot_region[[1]] + plot_region[[4]] 
-ggsave(last_plot(), file = "outputs/ccf_BA_DHW_Region.png", width = 10, height = 12)
+ggsave(last_plot(), file = paste0("outputs/ccf_BA_DHW_Region", suffix, ".png"), width = 10, height = 12)
