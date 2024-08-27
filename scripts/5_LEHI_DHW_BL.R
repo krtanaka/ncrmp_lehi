@@ -105,7 +105,7 @@ ipcc_col <- c(rgb(103, 0, 31, maxColorValue = 255, alpha = 255),
               rgb(33, 102, 172, maxColorValue = 255, alpha = 255),
               rgb(5, 48, 97, maxColorValue = 255, alpha = 255))
 
-detrend = T
+detrend = F
 
 for (i in 1:length(indices)) {
   
@@ -250,6 +250,13 @@ for (i in 1:length(indices)) {
     
   }
   
+  # Define the title based on the detrend condition
+  plot_title <- if (detrend) {
+    paste0(indices[i], " (Detrended)")
+  } else {
+    indices[i]
+  }
+  
   ccf$region <- factor(ccf$region, levels = region_list)
   
   ccf_filtered <- ccf %>% filter(region == "NCRMP")
@@ -262,7 +269,7 @@ for (i in 1:length(indices)) {
     geom_bar(stat = "identity", colour = "black", show.legend = FALSE) +
     scale_fill_gradientn(colors = rev(ipcc_col), "") +
     ylim(-0.5, 1) + 
-    ggtitle(indices[i]) + 
+    ggtitle(plot_title) + 
     labs(x = "lag (years)") + 
     facet_wrap(~region, ncol = 1) + 
     theme_minimal() +
@@ -283,7 +290,7 @@ for (i in 1:length(indices)) {
     geom_bar(stat = "identity", colour = "black", show.legend = FALSE) +
     scale_fill_gradientn(colors = rev(ipcc_col), "") +
     ylim(-0.5, 1) + 
-    ggtitle(indices[i]) + 
+    ggtitle(plot_title) + 
     labs(x = "lag (years)") + 
     facet_wrap(~region, ncol = 1) + 
     theme_minimal() +
