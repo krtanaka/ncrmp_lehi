@@ -310,7 +310,7 @@ ncrmp %>%
   mutate(med_sum = median(sum)) %>% 
   ggplot(aes(x = `sum`, y = reorder(UNIT, med_sum), fill = stat(x))) +
   geom_density_ridges_gradient(
-    bandwidth = 0.01,
+    bandwidth = 0.008,
     alpha = 0.8,
     color = "black",
     scale = 3,
@@ -345,7 +345,7 @@ ncrmp %>%
         legend.position = "none")
 
 ggsave(last_plot(), file = "outputs/crw_joy_5km_2015-2024.png", height = 8, width = 7, bg = "transparent")
-ggsave(last_plot(), file = "outputs/crw_joy_5km_2015-2024.png", height = 4, width = 3.5, bg = "transparent")
+ggsave(last_plot(), file = "outputs/crw_joy_5km_2015-2024.png", height = 6, width = 6, bg = "transparent")
 
 set.seed(2024)
 ncrmp %>%
@@ -393,4 +393,4 @@ ncrmp_sub %>%
   theme(axis.text.y = element_text(size = 10),
         legend.position = "none")
 # labs(tag = "(c) Exclusive Economic Zone"))
-ggsave(last_plot(), file = paste0("outputs/ncrmp.", percentile, "_", Sys.Date(), "_b.png"), height = 8, width = 10, bg = "transparent")
+ggsave(last_plot(), file = paste0("outputs/ncrmp.", percentile, "_", Sys.Date(), "_b.png"), height = 5, width = 5, bg = "transparent")
