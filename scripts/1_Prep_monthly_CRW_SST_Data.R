@@ -151,19 +151,20 @@ for (r in unique(df$Region)) {
     geom_point(shape = 21, show.legend = r == third_region) + 
     scale_color_gradientn(colors = matlab.like(100), name = expression(degree*C), limits = c(23.35, 29.13)) + 
     scale_fill_gradientn(colors = matlab.like(100), name = expression(degree*C), limits = c(23.35, 29.13)) + 
+    coord_map("ortho", orientation = c(0, median(df$x), 0)) +
     labs(x = "", y = "") + 
     coord_fixed() + 
     ggtitle(r)
   
-  print(p)
-  ggsave(last_plot(), file = paste0("outputs/fig_s_crw_sst_map_", r, ".png"), width = 6)
+  # print(p)
+  # ggsave(last_plot(), file = paste0("outputs/fig_s_crw_sst_map_", r, ".png"), width = 6)
   
   plots[[r]] = p 
 }
 
 plots[[5]] + (plots[[1]] / plots[[2]] / plots[[4]]) + plots[[3]]
 
-ggsave(last_plot(), file = "outputs/crw_sst_map.png", width = 12, height = 6, bg = "transparent")
+ggsave(last_plot(), file = "outputs/fig_s_crw_sst_map.png", width = 12, height = 6, bg = "transparent")
 
 df = left_join(crw_region_names, df)
 
@@ -202,4 +203,4 @@ ggplot(df_aggregated, aes(x = as.numeric(Year), y = MeanValue, fill = MeanValue)
             hjust = -0.1, vjust = 1.2, size = 3, color = "black", inherit.aes = FALSE) + 
   theme(legend.position = "none")
 
-ggsave(last_plot(), file = "outputs/crw_sst_time.png", width = 10, height = 7, bg = "transparent")
+ggsave(last_plot(), file = "outputs/fig_s_crw_sst_time.png", width = 10, height = 7, bg = "transparent")
