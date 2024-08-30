@@ -126,12 +126,17 @@ map = ggmap::get_map(#location = c(mean_lon, mean_lat),
   force = T, 
   color = "bw")
 
-(ggmap(map, darken = c(0.1, "black")) + 
-    geom_sf(data = df_i, aes(fill = mean), size = 10, shape = 22, inherit.aes = F) + 
-    scale_color_gradientn(colors = matlab.like(100), name = "deg C") + 
-    scale_fill_gradientn(colors = matlab.like(100), name = "deg C"))
+ggmap(map, darken = c(0.1, "black")) + 
+  geom_sf(data = df_i, aes(fill = mean), size = 11, shape = 22, inherit.aes = F) + 
+  scale_color_gradientn(colors = matlab.like(100), name = expression(degree*C)) + 
+  scale_fill_gradientn(colors = matlab.like(100), name = expression(degree*C)) +
+  labs(x = "", y = "") + 
+  theme(legend.position = c(0.1, 0.2), 
+        legend.title = element_text(color = "white", face = "bold"), 
+        legend.text = element_text(color = "white", face = "bold"),
+        legend.background = element_rect(fill = "transparent"))
 
-ggsave(last_plot(), file = "outputs/crw_sst_Oahu.png", width = 6, height = 6, bg = "transparent")
+ggsave(last_plot(), file = "outputs/fig_s_crw_sst_Oahu.png", width = 6, height = 6, bg = "transparent")
 
 plots = list()
 
@@ -144,14 +149,14 @@ for (r in unique(df$Region)) {
     select(x, y, mean) %>% 
     ggplot(aes(x, y, fill = mean)) + 
     geom_point(shape = 21, show.legend = r == third_region) + 
-    scale_color_gradientn(colors = matlab.like(100), name = "deg C", limits = c(23.35, 29.13)) + 
-    scale_fill_gradientn(colors = matlab.like(100), name = "deg C", limits = c(23.35, 29.13)) + 
+    scale_color_gradientn(colors = matlab.like(100), name = expression(degree*C), limits = c(23.35, 29.13)) + 
+    scale_fill_gradientn(colors = matlab.like(100), name = expression(degree*C), limits = c(23.35, 29.13)) + 
     labs(x = "", y = "") + 
     coord_fixed() + 
     ggtitle(r)
   
   print(p)
-  ggsave(last_plot(), file = paste0("outputs/crw_sst_map_", r, ".png"), width = 6)
+  ggsave(last_plot(), file = paste0("outputs/fig_s_crw_sst_map_", r, ".png"), width = 6)
   
   plots[[r]] = p 
 }
