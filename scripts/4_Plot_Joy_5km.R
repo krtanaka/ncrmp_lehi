@@ -310,25 +310,25 @@ ncrmp %>%
   mutate(med_sum = median(sum)) %>% 
   ggplot(aes(x = `sum`, y = reorder(UNIT, med_sum), fill = stat(x))) +
   geom_density_ridges_gradient(
-    bandwidth = 0.008,
+    bandwidth = 0.005,
     alpha = 0.8,
     color = "black",
     scale = 3,
     jittered_points = T,
     position = position_points_jitter(width = 0.05, height = 0),
     # point_shape = "|",
-    point_size = 1,
+    point_size = 0.5,
     point_alpha = 0.5,
-    quantile_lines = T,
-    vline_color = c("green"),
-    quantile_fun = median
+    # quantile_lines = T,
+    # vline_color = c("green"),
+    # quantile_fun = median
   ) +
   # geom_density_ridges_gradient(
   #   bandwidth = 0.01,
   #   scale = 3,
   #   color = NA,
-  #   quantile_lines = T,
-  #   vline_color = c("blue"),
+  #   # quantile_lines = T,
+  #   # vline_color = c("blue"),
   #   fill = NA,
   #   quantile_fun = mean
   # ) +
@@ -344,15 +344,14 @@ ncrmp %>%
         # panel.grid.minor.y = element_blank(),
         legend.position = "none")
 
-ggsave(last_plot(), file = "outputs/crw_joy_5km_2015-2024.png", height = 8, width = 7, bg = "transparent")
-ggsave(last_plot(), file = "outputs/crw_joy_5km_2015-2024.png", height = 6, width = 6, bg = "transparent")
+ggsave(last_plot(), file = "outputs/fig_crw_joy_5km_2015-2023.png", height = 9, width = 6, bg = "transparent")
 
 set.seed(2024)
 ncrmp %>%
   # subset(period %in% c("1985-1994", "2015-2023")) %>%
-  ggplot(aes(x = `sum`, y = factor(UNIT, levels = sort(unique(UNIT))), fill = period)) +
+  ggplot(aes(x = `sum`, y = factor(UNIT, levels = sort(unique(UNIT), decreasing = T)), fill = period)) +
   geom_density_ridges_gradient(
-    bandwidth = 0.01,
+    bandwidth = 0.005,
     color = "black",
   ) +
   scale_fill_viridis_d("") +
@@ -361,14 +360,16 @@ ncrmp %>%
         panel.background = element_blank(),
         legend.position = "top")
 
-ggsave(last_plot(), file = paste0("outputs/ncrmp.", percentile, "_", Sys.Date(), "_a.png"), height = 8, width = 10, bg = "transparent")
+ggsave(last_plot(), file = "outputs/fig_s_ncrmp_a.png", height = 8, width = 10, bg = "transparent")
 
 ncrmp = ncrmp %>% 
   subset(period %in% c("2015-2023")) %>% 
-  mutate(location_id = as.character(geometry)) %>%
+  mutate(
+    location_id = as.character(geometry),
+    UNIT = tolower(gsub("_&_", "_", UNIT))  # Apply gsub to replace spaces with underscores in UNIT
+  ) %>%
   group_by(UNIT, location_id) %>%
   summarise(sum = median(sum, na.rm = T)) %>% 
-  mutate(UNIT = tolower(UNIT)) %>% 
   as.data.frame()
 
 #you have to repeaet ranking because some units are ranked at same spots
@@ -385,12 +386,12 @@ ncrmp_sub %>%
   ggplot(aes(x = sum, y = UNIT, fill = UNIT)) +
   geom_joy(scale = 3, alpha = 0.8, show.legend = F) +
   theme_joy(grid = F) +
-  scale_y_discrete(expand = c(0.05, 0)) + # will generally have to set the `expand` option
-  # scale_x_continuous(limits = c(0, 1), expand = c(0, 0), breaks = c(0,0.5, 1)) +
+  scale_y_discrete(expand = c(-0.1, 0)) + # will generally have to set the `expand` option
+  scale_x_continuous(expand = c(0, 0)) +
   scale_fill_cyclical(values = ipcc_temp_expand(length(unique(ncrmp_sub$UNIT)))) +
   ylab(NULL) + xlab(NULL) +
   # coord_fixed(ratio = 0.05) + 
   theme(axis.text.y = element_text(size = 10),
         legend.position = "none")
 # labs(tag = "(c) Exclusive Economic Zone"))
-ggsave(last_plot(), file = paste0("outputs/ncrmp.", percentile, "_", Sys.Date(), "_b.png"), height = 5, width = 5, bg = "transparent")
+ggsave(last_plot(), file = "outputs/fig_crw_joy_5km_2015-2023.png", height = 6, width = 6, bg = "transparent")
