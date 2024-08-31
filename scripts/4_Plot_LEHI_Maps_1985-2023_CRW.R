@@ -167,7 +167,7 @@ map = function(mode){
         annotate("text", x = max_lon, y = max_lat, label = "2015-2023", 
                  hjust = 1, vjust = 1, color = "white", size = 6))
     
-    ggsave(last_plot(), file = paste0("outputs/CRW_LEHI_map_annual_", percentile, ".png"), height = 5, width = 8)
+    ggsave(last_plot(), file = "outputs/fig_crw_lehi_map_annual.png", height = 5, width = 8)
     
   }
   
@@ -265,7 +265,7 @@ map = function(mode){
         annotate("text", x = max_lon, y = max_lat, label = "2015-2023", 
                  hjust = 1, vjust = 1, color = "white", size = 6))
     
-    ggsave(last_plot(), file = paste0("outputs/CRW_LEHI_map_seasonal_diff_", percentile, ".png"), height = 5, width = 8)
+    ggsave(last_plot(), file = "outputs/fig_crw_lehi_map_seasonal_diff.png", height = 5, width = 8)
     
   }
   
@@ -328,12 +328,13 @@ map = function(mode){
     
     (ggmap(map, darken = c(0.5, "black")) + 
         geom_sf(data = anom %>% 
+                  # filter(period == "2015-2023") %>% 
                   filter(region == "MHI"),
                 aes(fill = sum), shape = 22, inherit.aes = F) + 
         scale_fill_gradientn(colors = rev(ipcc_col), name = "LEHI") +
         scale_y_continuous(limits = c(min_lat, max_lat), "") +
         scale_x_continuous(limits = c(min_lon, max_lon), "") +
-        facet_grid(season ~ period))
+        facet_grid(period ~ season))
     
     # (anom %>%
     #     filter(region == "MHI") %>%
