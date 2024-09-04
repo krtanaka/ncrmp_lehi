@@ -351,10 +351,15 @@ ncrmp %>%
   # subset(period %in% c("1985-1994", "2015-2023")) %>%
   ggplot(aes(x = `sum`, y = factor(UNIT, levels = sort(unique(UNIT), decreasing = T)), fill = period)) +
   geom_density_ridges_gradient(
-    bandwidth = 0.005,
-    color = "black",
+    bandwidth = 0.01,
+    alpha = 0.8,
+    scale = 3, 
+    color = "gray20",
   ) +
-  scale_fill_viridis_d("") +
+  # scale_fill_viridis_d("") +
+  scale_fill_manual(values = rev(ipcc_temp_4_cols), "") +
+  scale_y_discrete(expand = c(-0.1, 0)) + # will generally have to set the `expand` option
+  scale_x_continuous(expand = c(0, 0)) +
   ylab(NULL) + xlab(NULL) +
   theme(axis.text.y = element_text(size = 10),
         panel.background = element_blank(),

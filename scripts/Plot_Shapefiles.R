@@ -1,8 +1,8 @@
 library(readr)
 library(dplyr)
 library(ggplot2)
-library(rgdal)
-library(rgeos)
+# library(rgdal)
+# library(rgeos)
 library(sf)
 
 rm(list = ls())
