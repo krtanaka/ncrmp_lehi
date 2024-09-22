@@ -12,6 +12,7 @@ library(ggalt)
 library(readr)
 library(lwgeom)
 library(ggdark)
+library(ggmap)
 
 rm(list = ls())
 
