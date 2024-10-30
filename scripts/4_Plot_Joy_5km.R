@@ -304,51 +304,42 @@ ncrmp = rank_joy("region")
 
 ncrmp %>%
   subset(period == "2015-2023") %>%
-  # subset(period == "1985-1994") %>%
-  # subset(period %in% c("1985-1994", "2015-2023")) %>%
+  mutate(UNIT = gsub("_", " ", UNIT)) %>% 
   group_by(UNIT) %>% 
   mutate(med_sum = median(sum)) %>% 
-  ggplot(aes(x = `sum`, y = reorder(UNIT, med_sum), fill = stat(x))) +
+  ggplot(aes(x = sum, y = reorder(UNIT, med_sum), fill = stat(x))) +
   geom_density_ridges_gradient(
     bandwidth = 0.005,
     alpha = 0.8,
     color = "black",
     scale = 3,
-    jittered_points = T,
+    jittered_points = TRUE,
     position = position_points_jitter(width = 0.05, height = 0),
-    # point_shape = "|",
     point_size = 0.5,
     point_alpha = 0.5,
-    # quantile_lines = T,
-    # vline_color = c("green"),
-    # quantile_fun = median
+    quantile_lines = T,
+    vline_color = c("green"),
+    quantile_fun = median  # Solid line for quantiles
   ) +
-  # geom_density_ridges_gradient(
-  #   bandwidth = 0.01,
-  #   scale = 3,
-  #   color = NA,
-  #   # quantile_lines = T,
-  #   # vline_color = c("blue"),
-  #   fill = NA,
-  #   quantile_fun = mean
-  # ) +
-  scale_fill_gradientn(colors = rev(ipcc_col), "") +
+  scale_fill_gradientn(colors = rev(ipcc_col), name = "") +
   ylab(NULL) + xlab(NULL) +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_y_discrete(expand = c(0, 0)) +    
-  theme(axis.text.y = element_text(size = 10),
-        panel.background = element_blank(),
-        # panel.grid.major.x = element_blank(),
-        # panel.grid.minor.x = element_blank(),
-        # panel.grid.major.y = element_blank(),
-        # panel.grid.minor.y = element_blank(),
-        legend.position = "none")
+  scale_x_continuous(limits = c(0, 0.4)) +
+  scale_y_discrete(expand = c(0, 0)) +
+  # coord_fixed(ratio = 0.01) + 
+  theme(
+    axis.text.y = element_text(size = 10, hjust = 0),  # Left-align y-axis labels
+    panel.grid.major.y = element_line(color = "gray20"),
+    panel.grid.major.x = element_blank(),
+    panel.background = element_blank(),
+    legend.position = "none"
+  )
 
-ggsave(last_plot(), file = "outputs/fig_crw_joy_5km_2015-2023.png", height = 9, width = 6, bg = "transparent")
+ggsave(last_plot(), file = "outputs/fig_crw_joy_5km_2015-2023a.png", height = 7, width = 6, bg = "transparent")
 
 set.seed(2024)
 ncrmp %>%
   # subset(period %in% c("1985-1994", "2015-2023")) %>%
+  mutate(UNIT = gsub("_", " ", UNIT)) %>% 
   ggplot(aes(x = `sum`, y = factor(UNIT, levels = sort(unique(UNIT), decreasing = T)), fill = period)) +
   geom_density_ridges_gradient(
     bandwidth = 0.01,
@@ -361,7 +352,7 @@ ncrmp %>%
   scale_y_discrete(expand = c(-0.1, 0)) + # will generally have to set the `expand` option
   scale_x_continuous(expand = c(0, 0)) +
   ylab(NULL) + xlab(NULL) +
-  theme(axis.text.y = element_text(size = 10),
+  theme(axis.text.y = element_text(size = 10, hjust = 0),
         panel.background = element_blank(),
         legend.position = "top")
 
@@ -371,8 +362,9 @@ ncrmp = ncrmp %>%
   subset(period %in% c("2015-2023")) %>% 
   mutate(
     location_id = as.character(geometry),
-    UNIT = tolower(gsub("_&_", "_", UNIT))  # Apply gsub to replace spaces with underscores in UNIT
-  ) %>%
+    # UNIT = tolower(gsub("_&_", "_", UNIT)),
+    UNIT = gsub("_&_", "_", UNIT),
+    UNIT = gsub("_", " ", UNIT)) %>% 
   group_by(UNIT, location_id) %>%
   summarise(sum = median(sum, na.rm = T)) %>% 
   as.data.frame()
@@ -389,14 +381,20 @@ ncrmp_sub = ncrmp_sub[,c("UNIT", "sum")]; ncrmp_sub = as.data.frame(ncrmp_sub); 
 ncrmp_sub %>% 
   mutate(UNIT = forcats::fct_reorder(UNIT, sum)) %>%
   ggplot(aes(x = sum, y = UNIT, fill = UNIT)) +
-  geom_joy(scale = 3, alpha = 0.8, show.legend = F) +
+  geom_joy(scale = 3, alpha = 0.9, show.legend = F) +
   theme_joy(grid = F) +
   scale_y_discrete(expand = c(-0.1, 0)) + # will generally have to set the `expand` option
   scale_x_continuous(expand = c(0, 0)) +
   scale_fill_cyclical(values = ipcc_temp_expand(length(unique(ncrmp_sub$UNIT)))) +
   ylab(NULL) + xlab(NULL) +
-  # coord_fixed(ratio = 0.05) + 
-  theme(axis.text.y = element_text(size = 10),
-        legend.position = "none")
+  # scale_x_continuous(limits = c(0, 0.4)) +
+  # scale_y_discrete(expand = c(0, 0)) +
+  theme(
+    axis.text.y = element_text(size = 10, hjust = 0),  # Left-align y-axis labels
+    panel.grid.major.y = element_line(color = "gray20"),
+    panel.grid.major.x = element_blank(),
+    panel.background = element_blank(),
+    legend.position = "none"
+  )
 # labs(tag = "(c) Exclusive Economic Zone"))
 ggsave(last_plot(), file = "outputs/fig_crw_joy_5km_2015-2023.png", height = 6, width = 6, bg = "transparent")
