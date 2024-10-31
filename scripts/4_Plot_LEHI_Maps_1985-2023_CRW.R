@@ -149,8 +149,8 @@ map = function(mode){
       location =  c(left = min_lon, bottom = min_lat, right = max_lon, top = max_lat),
       maptype = "satellite",
       zoom = 7,
-      force = T, 
-      color = "bw")
+      color = "bw",
+      force = T) 
     
     (ggmap(map, darken = c(0.5, "black")) + 
         geom_sf(data = anom_i %>% 
@@ -248,16 +248,16 @@ map = function(mode){
       location =  c(left = min_lon, bottom = min_lat, right = max_lon, top = max_lat),
       maptype = "satellite",
       zoom = 7,
-      force = T,
-      color = "bw")
+      color = "bw",
+      force = T) 
     
     (ggmap(map, darken = c(0.5, "black")) + 
         geom_sf(data = seasonal_differnece %>% 
                   filter(region == "MHI"),
                 aes(fill = diff), size = 4, shape = 22, inherit.aes = F) + 
-        scale_fill_gradientn(colors = rev(ipcc_col), name = "LEHI\nseasonal difference\n(Jul-Sep)-(Jan-Mar)") +
-        scale_y_continuous(limits = c(min_lat, max_lat), "") + 
-        scale_x_continuous(limits = c(min_lon, max_lon), "") + 
+        scale_fill_gradientn(colors = rev(ipcc_col), name = "LEHI\nSeasonal Difference\n(Jul-Sep vs Jan-Mar)") +
+        scale_y_continuous(limits = c(min_lat, max_lat), "") +
+        scale_x_continuous(limits = c(min_lon, max_lon), "") +
         theme(legend.position = c(0.18, 0.25),
               legend.background = element_blank(),
               legend.box.background = element_blank(), 
@@ -327,6 +327,13 @@ map = function(mode){
       mutate(x = ifelse(x > 180, x - 360, x)) %>% 
       st_as_sf(coords = c("x", "y"), crs = "+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")
     
+    map = ggmap::get_map(#location = c(mean_lon, mean_lat),
+      location =  c(left = -160.5, bottom = 18.9, right = -154.8, top = 22.2),
+      maptype = "satellite",
+      zoom = 7,
+      color = "bw",
+      force = T) 
+    
     (ggmap(map, darken = c(0.5, "black")) + 
         geom_sf(data = anom %>% 
                   # filter(period == "2015-2023") %>% 
@@ -335,7 +342,7 @@ map = function(mode){
         scale_fill_gradientn(colors = rev(ipcc_col), name = "LEHI") +
         scale_y_continuous(limits = c(min_lat, max_lat), "") +
         scale_x_continuous(limits = c(min_lon, max_lon), "") +
-        facet_grid(period ~ season))
+        facet_grid(season ~ period))
     
     # (anom %>%
     #     filter(region == "MHI") %>%
