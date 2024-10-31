@@ -140,25 +140,25 @@ LaNina = c(1904, 1909, 1910, 1911, 1917, 1918,
 df$LaNina = "N"
 df$LaNina = ifelse(df$Year %in% LaNina, "Y", df$LaNina)
 
-(p = df %>% 
-    subset(region == "NCRMP") %>% 
-    group_by(Time) %>% 
-    summarise(year_sum = mean(year_sum)) %>% 
-    as.data.frame() %>% 
-    ggplot(aes(Time, year_sum, color = year_sum)) +
-    # geom_vline(xintercept = df$Time[df$ElNino == "Y"], color = "red", alpha = 0.1) +
-    # geom_vline(xintercept = df$Time[df$LaNina == "Y"], color = "blue", alpha = 0.1) +
-    geom_line(alpha = 0.2) +
-    geom_point(alpha = 0.8, size = 5) +
-    # scale_y_continuous(limits = c(0, 1)) + 
-    scale_color_gradientn(colors = rev(ipcc_col), "") +
-    geom_hline(yintercept = 0.5, linetype = "dashed") + 
-    theme_cowplot(I(15)) + 
-    theme(legend.position = c(0,1),
-          legend.justification = c(-0.3,0.8)) + 
-    labs(x = "", y = "Area fraction"))
+df %>% 
+  subset(region == "NCRMP") %>% 
+  group_by(Time) %>% 
+  summarise(year_sum = mean(year_sum)) %>% 
+  as.data.frame() %>% 
+  ggplot(aes(Time, year_sum, color = year_sum)) +
+  # geom_vline(xintercept = df$Time[df$ElNino == "Y"], color = "red", alpha = 0.1) +
+  # geom_vline(xintercept = df$Time[df$LaNina == "Y"], color = "blue", alpha = 0.1) +
+  geom_line(alpha = 0.2) +
+  geom_point(alpha = 0.9, size = 5) +
+  # scale_y_continuous(limits = c(0, 1)) + 
+  scale_color_gradientn(colors = rev(ipcc_col), "") +
+  geom_hline(yintercept = 0.5, linetype = "dashed") + 
+  theme_cowplot(I(15)) + 
+  theme(legend.position = c(0,1),
+        legend.justification = c(-0.3,0.8)) + 
+  labs(x = "", y = "Area fraction")
 
-ggsave(last_plot(), file = "outputs/LEHI_Timeseries_v1_5km.png", height = 6, width = 10)
+ggsave(last_plot(), file = "outputs/LEHI_Timeseries_v1_5km.png", height = 9, width = 8)
 
 df = df %>% group_by(Year, region) %>% summarise(year_sum = mean(year_sum))
 df$Year = as.numeric(df$Year)
@@ -177,19 +177,19 @@ df %>%
 
 df$region = factor(df$region, levels = region_list)
 
-(p = df %>% 
-    # subset(region != "NCRMP") %>%
-    ggplot(aes(Year, year_sum, colour = year_sum)) +
-    geom_line(color = "gray80") +
-    geom_point(alpha = 0.8, size = 5)  +
-    scale_color_gradientn(colors = rev(ipcc_col), "") +
-    geom_hline(yintercept = 0.5, linetype = "dashed") + 
-    theme_cowplot() + 
-    facet_wrap(~region, nrow = 2) + 
-    scale_x_continuous(breaks = seq(1985, 2023, 10), limits = c(1985, 2023)) + 
-    scale_y_continuous(breaks = c(seq(0, 1, by = 0.2)), limits = c(0, max(df$year_sum))) +
-    labs(x = "", y = "Area fraction") + 
-    theme(legend.position = "none",
-          axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)))
+df %>% 
+  subset(region != "NCRMP") %>%
+  ggplot(aes(Year, year_sum, colour = year_sum)) +
+  geom_line(color = "gray80") +
+  geom_point(alpha = 0.8, size = 2)  +
+  scale_color_gradientn(colors = rev(ipcc_col), "") +
+  geom_hline(yintercept = 0.5, linetype = "dashed") + 
+  theme_cowplot() + 
+  facet_wrap(~region, nrow = 5) + 
+  scale_x_continuous(breaks = seq(1985, 2023, 5), limits = c(1985, 2023)) + 
+  scale_y_continuous(breaks = c(seq(0, 1, by = 0.2)), limits = c(0, max(df$year_sum))) +
+  labs(x = "", y = "Area fraction") + 
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
-ggsave(last_plot(), file = "outputs/LEHI_Timeseries_v2_5km.png", height = 6, width = 9)
+ggsave(last_plot(), file = "outputs/LEHI_Timeseries_v2_5km.png", height = 9, width = 6)

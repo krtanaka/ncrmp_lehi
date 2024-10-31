@@ -37,6 +37,7 @@ clim %>%
   geom_point(shape = 21, size = 5, alpha = 0.8) +
   scale_fill_viridis_d("") + 
   facet_wrap(~index, scales = "free") + 
+  theme_cowplot() + 
   theme(axis.title = element_blank())
 
 ggsave(last_plot(), file = "outputs/climate_indices.png", width = 10, height = 5)
@@ -105,7 +106,7 @@ ipcc_col <- c(rgb(103, 0, 31, maxColorValue = 255, alpha = 255),
               rgb(33, 102, 172, maxColorValue = 255, alpha = 255),
               rgb(5, 48, 97, maxColorValue = 255, alpha = 255))
 
-detrend = F
+detrend = T
 
 for (i in 1:length(indices)) {
   
